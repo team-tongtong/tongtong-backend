@@ -19,7 +19,7 @@ description: 이 프로젝트(통통 · 계층형 · Spring Boot 4 · Java 21)�
 |---|---|
 | 새 도메인 기능 추가, 계층 배치, 패키지 위치 | `docs/ARCHITECTURE.md` (패키지 구조·계층별 책임) |
 | 목록 조회, 연관관계, 인덱스 | `docs/ARCHITECTURE.md` (성능 고려사항) |
-| 응답 포맷, 에러 코드 추가 | `docs/ARCHITECTURE.md` (공통 규약) + `global/exception/ErrorCode.java` |
+| 응답 포맷, 에러 코드 추가 | `docs/ARCHITECTURE.md` (공통 규약) + `global/response/ErrorCode.java` |
 | 팀 결정이 필요한 사항 | `docs/adr/` |
 
 기획에서 정해지지 않은 동작은 임의로 정하지 않고 사용자에게 확인한다.
