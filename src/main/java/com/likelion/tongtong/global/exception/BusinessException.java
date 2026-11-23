@@ -1,5 +1,6 @@
 package com.likelion.tongtong.global.exception;
 
+import com.likelion.tongtong.global.response.ErrorCode;
 import lombok.Getter;
 
 @Getter
