@@ -8,6 +8,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -27,72 +29,40 @@ class CorsConfigTest {
     }
 
     @Nested
-    @SpringBootTest(properties = "CORS_ALLOWED_ORIGINS=")
+    @SpringBootTest
     @AutoConfigureMockMvc
     @ActiveProfiles("test")
-    @DisplayName("추가 출처 환경변수가 비어 있을 때")
-    class 추가_출처_없음 {
+    @DisplayName("application.yml의 허용 출처를 적용할 때")
+    class 허용_출처 {
 
         @Autowired
         private MockMvc mockMvc;
 
-        @Test
-        @DisplayName("기본 출처인 localhost는 허용한다")
-        void localhost_허용() throws Exception {
-            // given
-            String origin = "http://localhost:3000";
-
-            // when & then
+        @ParameterizedTest
+        @ValueSource(strings = {
+                "http://localhost:3000",
+                "http://localhost:5173",
+                "https://tongtong-frontend.vercel.app"
+        })
+        @DisplayName("등록된 출처는 허용한다")
+        void 등록된_출처_허용(String origin) throws Exception {
+            // given & when & then
             preflight(mockMvc, origin)
                     .andExpect(status().isOk())
                     .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, origin));
         }
 
-        @Test
-        @DisplayName("허용되지 않은 출처는 모든 출처 허용으로 열리지 않고 403으로 거부한다")
-        void 허용되지_않은_출처_거부() throws Exception {
-            // given
-            String origin = "https://evil.example.com";
-
-            // when & then
+        @ParameterizedTest
+        @ValueSource(strings = {
+                "https://evil.example.com",
+                "https://tongtong-git-feat-abc.vercel.app"
+        })
+        @DisplayName("등록되지 않은 출처는 403으로 거부한다")
+        void 등록되지_않은_출처_거부(String origin) throws Exception {
+            // given & when & then
             preflight(mockMvc, origin)
                     .andExpect(status().isForbidden())
                     .andExpect(header().doesNotExist(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
-        }
-    }
-
-    @Nested
-    @SpringBootTest(properties = "CORS_ALLOWED_ORIGINS=https://*.vercel.app")
-    @AutoConfigureMockMvc
-    @ActiveProfiles("test")
-    @DisplayName("추가 출처 환경변수에 패턴을 지정했을 때")
-    class 추가_출처_패턴 {
-
-        @Autowired
-        private MockMvc mockMvc;
-
-        @Test
-        @DisplayName("패턴에 맞는 Vercel 출처를 허용한다")
-        void 패턴_출처_허용() throws Exception {
-            // given
-            String origin = "https://tongtong-git-feat-abc.vercel.app";
-
-            // when & then
-            preflight(mockMvc, origin)
-                    .andExpect(status().isOk())
-                    .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, origin));
-        }
-
-        @Test
-        @DisplayName("추가 출처를 지정해도 localhost 기본 출처는 유지된다")
-        void localhost_유지() throws Exception {
-            // given
-            String origin = "http://localhost:5173";
-
-            // when & then
-            preflight(mockMvc, origin)
-                    .andExpect(status().isOk())
-                    .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, origin));
         }
     }
 
