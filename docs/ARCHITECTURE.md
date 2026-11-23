@@ -28,11 +28,14 @@ com.likelion.tongtong
 │   │   ├── JpaConfig.java
 │   │   └── CorsConfig.java
 │   ├── common
+│   │   ├── BaseTimeEntity.java
+│   │   └── PageResponse.java
+│   ├── response
 │   │   ├── ApiResponse.java
-│   │   └── BaseTimeEntity.java
+│   │   ├── SuccessCode.java
+│   │   └── ErrorCode.java
 │   └── exception
 │       ├── BusinessException.java
-│       ├── ErrorCode.java
 │       └── GlobalExceptionHandler.java
 └── domain
     └── user
@@ -70,18 +73,43 @@ Entity는 Service 계층을 벗어나지 않는다.
 
 모든 응답은 `ApiResponse<T>` 로 감싼다.
 
+성공
+
 {
-  "success": true,
-  "code": 200,
+  "code": "SUCCESS",
   "message": "요청에 성공했습니다.",
   "data": { }
 }
+
+실패
+
+{
+  "code": "ROOM_NOT_FOUND",
+  "message": "모집방을 찾을 수 없어요.",
+  "data": null
+}
+
+- `code` 는 문자열이다. 성공은 `SuccessCode`, 실패는 `ErrorCode` 에 정의한다
+- `message` 는 화면에 표시될 수 있는 문구다. 도메인 에러는 해요체로 쓴다
+- `SuccessCode.CREATED` 는 body의 `code` 만 정한다. 생성 API는 Controller에서 HTTP 201을 함께 지정한다
 
 ### 예외 처리
 
 - 비즈니스 예외는 `BusinessException` 을 던진다
 - 에러 코드는 `ErrorCode` enum에 정의한다
 - `GlobalExceptionHandler` 에서 일괄 처리한다
+- 요청 DTO의 Bean Validation 어노테이션에는 한글 `message` 를 반드시 적는다
+
+| 예외 | `code` |
+|---|---|
+| 본문 JSON 오류 (`HttpMessageNotReadableException`) | `INVALID_REQUEST_BODY` |
+| 파라미터 타입 오류·누락 | `INVALID_PARAMETER` |
+| `@Valid`, 메서드 파라미터 검증 실패 | `INVALID_INPUT` |
+| 없는 주소 | `RESOURCE_NOT_FOUND` |
+| 지원하지 않는 HTTP 메서드 | `METHOD_NOT_ALLOWED` |
+| 지원하지 않는 Content-Type | `UNSUPPORTED_MEDIA_TYPE` |
+| 그 외 스프링 4xx | `HTTP_{상태코드}` |
+| 처리되지 않은 예외 | `INTERNAL_SERVER_ERROR` |
 
 ### 프로파일
 

@@ -77,7 +77,8 @@
     │   └── 📁 user            # 회원
     │
     └── 📂 global
-        ├── 📁 common          # 공통 응답(ApiResponse), BaseTimeEntity, 페이지 응답
+        ├── 📁 common          # BaseTimeEntity, 페이지 응답
         ├── 📁 config          # CORS, JPA, Swagger 설정
-        └── 📁 exception       # 에러 코드, 전역 예외 처리
+        ├── 📁 response        # 공통 응답(ApiResponse), 성공·에러 코드
+        └── 📁 exception       # 비즈니스 예외, 전역 예외 처리
 ```
