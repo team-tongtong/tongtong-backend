@@ -138,14 +138,13 @@ CD에 필요한 GitHub Secrets
 | `DB_URL` | JDBC URL (예: `jdbc:mysql://{host}:3306/{db}`) |
 | `DB_USERNAME` | DB 사용자 |
 | `DB_PASSWORD` | DB 비밀번호 |
-| `CORS_ALLOWED_ORIGINS` | 추가로 허용할 프론트 출처(쉼표 구분, 패턴 가능). 예: `https://xxx.vercel.app,https://xxx-*.vercel.app` |
 
 서버 구성(nginx·HTTPS)은 배포 서버 세팅 후 `docs/DEPLOYMENT.md` 에 정리한다.
 
 ### CORS
 
 `CorsConfig` 가 `app.cors.allowed-origins` 출처 패턴을 허용한다.
-`localhost:3000`, `localhost:5173` 은 항상 허용하고, 그 외 출처는 `CORS_ALLOWED_ORIGINS` 환경변수로 추가한다.
+허용 출처는 `application.yml` 한 곳에서 관리한다. 현재 `localhost:3000`, `localhost:5173`, `https://tongtong-frontend.vercel.app` 을 허용한다.
 
 ## 성능 고려사항
 
