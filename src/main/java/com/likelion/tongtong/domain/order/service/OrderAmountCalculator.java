@@ -22,6 +22,9 @@ public class OrderAmountCalculator {
 
     /** 금액은 원 단위이며, 아껴통의 sharedMenuPrice는 null이다. */
     public OrderShares calculateShares(Track track, int maxParticipants, int deliveryFee, Integer sharedMenuPrice) {
+        if (maxParticipants <= 0 || deliveryFee < 0 || (sharedMenuPrice != null && sharedMenuPrice < 0)) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT);
+        }
         int deliveryFeeShare = deliveryFee / maxParticipants;
 
         return switch (track) {
@@ -45,6 +48,9 @@ public class OrderAmountCalculator {
         OrderShares shares = calculateShares(track, maxParticipants, deliveryFee, sharedMenuPrice);
         int foodAmount = shares.sharedMenuPortionPrice();
         for (MenuLine item : personalItems) {
+            if (item.unitPrice() < 0 || item.quantity() <= 0) {
+                throw new BusinessException(ErrorCode.INVALID_INPUT);
+            }
             int lineAmount = Math.multiplyExact(item.unitPrice(), item.quantity());
             foodAmount = Math.addExact(foodAmount, lineAmount);
         }

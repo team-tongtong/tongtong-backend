@@ -12,6 +12,8 @@ import com.likelion.tongtong.global.response.ErrorCode;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class OrderAmountCalculatorTest {
 
@@ -97,6 +99,68 @@ class OrderAmountCalculatorTest {
 
         // when & then
         assertThatThrownBy(() -> calculator.calculateShares(Track.PORTION, 4, 2_000, sharedMenuPrice))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_INPUT));
+    }
+
+    @Test
+    @DisplayName("나눠통은 공유 메뉴 가격이 음수면 INVALID_INPUT으로 거절한다")
+    void rejectsNegativeSharedMenuPrice() {
+        // given
+        int sharedMenuPrice = -1;
+
+        // when & then
+        assertThatThrownBy(() -> calculator.calculateShares(Track.PORTION, 4, 2_000, sharedMenuPrice))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_INPUT));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, -1})
+    @DisplayName("모집 정원이 0 이하면 배달비를 나누기 전에 INVALID_INPUT으로 거절한다")
+    void rejectsNonPositiveMaxParticipants(int maxParticipants) {
+        // given
+        int deliveryFee = 2_000;
+
+        // when & then
+        assertThatThrownBy(() -> calculator.calculateShares(Track.INDIVIDUAL, maxParticipants, deliveryFee, null))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_INPUT));
+    }
+
+    @Test
+    @DisplayName("배달비가 음수면 INVALID_INPUT으로 거절한다")
+    void rejectsNegativeDeliveryFee() {
+        // given
+        int deliveryFee = -1;
+
+        // when & then
+        assertThatThrownBy(() -> calculator.calculateShares(Track.INDIVIDUAL, 4, deliveryFee, null))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_INPUT));
+    }
+
+    @Test
+    @DisplayName("개인 메뉴 단가가 음수면 INVALID_INPUT으로 거절한다")
+    void rejectsNegativePersonalMenuPrice() {
+        // given
+        List<MenuLine> personalItems = List.of(new MenuLine(-1, 1));
+
+        // when & then
+        assertThatThrownBy(() -> calculator.calculate(Track.INDIVIDUAL, 4, 0, null, personalItems))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_INPUT));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, -1})
+    @DisplayName("개인 메뉴 수량이 0 이하면 INVALID_INPUT으로 거절한다")
+    void rejectsNonPositivePersonalMenuQuantity(int quantity) {
+        // given
+        List<MenuLine> personalItems = List.of(new MenuLine(1_000, quantity));
+
+        // when & then
+        assertThatThrownBy(() -> calculator.calculate(Track.INDIVIDUAL, 4, 0, null, personalItems))
                 .isInstanceOfSatisfying(BusinessException.class,
                         exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_INPUT));
     }
