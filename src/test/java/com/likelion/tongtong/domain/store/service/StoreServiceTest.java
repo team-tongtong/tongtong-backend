@@ -16,29 +16,26 @@ import com.likelion.tongtong.global.exception.BusinessException;
 import com.likelion.tongtong.global.response.ErrorCode;
 import java.math.BigDecimal;
 import java.time.LocalTime;
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestConstructor;
+import org.springframework.test.context.TestConstructor.AutowireMode;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = AutowireMode.ALL)
 class StoreServiceTest {
 
-    @Autowired
-    private StoreService storeService;
-
-    @Autowired
-    private StoreRepository storeRepository;
-
-    @Autowired
-    private MenuRepository menuRepository;
-
-    @Autowired
-    private ReviewRepository reviewRepository;
+    private final StoreService storeService;
+    private final StoreRepository storeRepository;
+    private final MenuRepository menuRepository;
+    private final ReviewRepository reviewRepository;
 
     @Test
     @DisplayName("없는 가게 ID로 조회하면 STORE_NOT_FOUND로 거절한다")
