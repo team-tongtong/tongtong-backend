@@ -90,6 +90,18 @@ class OrderAmountCalculatorTest {
     }
 
     @Test
+    @DisplayName("나눠통은 공유 메뉴 가격이 없으면 INVALID_INPUT으로 거절한다")
+    void rejectsPortionSharesWithoutSharedMenuPrice() {
+        // given
+        Integer sharedMenuPrice = null;
+
+        // when & then
+        assertThatThrownBy(() -> calculator.calculateShares(Track.PORTION, 4, 2_000, sharedMenuPrice))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        exception -> assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.INVALID_INPUT));
+    }
+
+    @Test
     @DisplayName("아껴통과 나눠통에서 메뉴 가격과 배달비 0원을 계산할 수 있다")
     void acceptsZeroAmounts() {
         // given

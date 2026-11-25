@@ -26,7 +26,12 @@ public class OrderAmountCalculator {
 
         return switch (track) {
             case INDIVIDUAL -> new OrderShares(0, deliveryFeeShare, 0);
-            case PORTION -> new OrderShares(sharedMenuPrice / maxParticipants, deliveryFeeShare, PORTION_FEE);
+            case PORTION -> {
+                if (sharedMenuPrice == null) {
+                    throw new BusinessException(ErrorCode.INVALID_INPUT);
+                }
+                yield new OrderShares(sharedMenuPrice / maxParticipants, deliveryFeeShare, PORTION_FEE);
+            }
         };
     }
 
