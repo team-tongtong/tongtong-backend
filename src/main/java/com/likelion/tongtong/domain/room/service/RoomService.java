@@ -9,8 +9,8 @@ import com.likelion.tongtong.domain.room.entity.Room;
 import com.likelion.tongtong.domain.room.entity.RoomStatus;
 import com.likelion.tongtong.domain.room.entity.Track;
 import com.likelion.tongtong.domain.room.repository.RoomRepository;
+import java.time.Clock;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -20,16 +20,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class RoomService {
-
-    private static final ZoneId SEOUL = ZoneId.of("Asia/Seoul");
 
     private final RoomRepository roomRepository;
     private final OrderRepository orderRepository;
+    private final Clock clock;
 
-    @Transactional(readOnly = true)
     public RoomListResponse getRooms(Track track) {
-        LocalDateTime now = LocalDateTime.now(SEOUL);
+        LocalDateTime now = LocalDateTime.now(clock);
         List<Room> rooms = roomRepository.findRecruitingRooms(RoomStatus.RECRUITING, now, track);
         if (rooms.isEmpty()) {
             return new RoomListResponse(List.of());

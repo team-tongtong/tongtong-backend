@@ -2,6 +2,7 @@ package com.likelion.tongtong.domain.room.controller;
 
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.nullValue;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -18,6 +19,7 @@ import com.likelion.tongtong.domain.store.entity.Store;
 import com.likelion.tongtong.domain.user.entity.User;
 import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -29,35 +31,41 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@MockitoBean(types = Clock.class)
 @Transactional
 class RoomControllerTest {
 
     private static final String ROOMS_URL = "/api/v1/rooms";
     private static final String STORE_IMAGE_URL = "https://example.com/store.png";
+    private static final ZoneId SEOUL = ZoneId.of("Asia/Seoul");
+    private static final LocalDateTime NOW = LocalDateTime.of(2026, 11, 25, 12, 0);
 
     private final MockMvc mockMvc;
     private final EntityManager entityManager;
+    private final Clock clock;
 
     private Store store;
     private Spot spot;
     private Menu sharedMenu;
-    private LocalDateTime now;
 
     @Autowired
-    RoomControllerTest(MockMvc mockMvc, EntityManager entityManager) {
+    RoomControllerTest(MockMvc mockMvc, EntityManager entityManager, Clock clock) {
         this.mockMvc = mockMvc;
         this.entityManager = entityManager;
+        this.clock = clock;
     }
 
     @BeforeEach
     void setUp() {
-        now = LocalDateTime.now(ZoneId.of("Asia/Seoul")).withNano(0);
+        when(clock.instant()).thenReturn(NOW.atZone(SEOUL).toInstant());
+        when(clock.getZone()).thenReturn(SEOUL);
         store = Store.builder()
                 .name("테스트 가게")
                 .category("한식")
@@ -82,13 +90,14 @@ class RoomControllerTest {
     @DisplayName("필터를 생략하면 모집 중인 두 트랙을 마감순으로 반환하고 참여 인원과 대표 메뉴를 표시한다")
     void returnsRecruitingRoomsInDeadlineOrder() throws Exception {
         // given
-        Room portionRoom = saveRoom(Track.PORTION, RoomStatus.RECRUITING, now.plusMinutes(30));
+        Room portionRoom = saveRoom(Track.PORTION, RoomStatus.RECRUITING, NOW.plusMinutes(30));
         saveOrder(portionRoom, OrderStatus.CANCELED);
         saveOrder(portionRoom, OrderStatus.JOINED);
         saveOrder(portionRoom, OrderStatus.PICKED_UP);
-        Room individualRoom = saveRoom(Track.INDIVIDUAL, RoomStatus.RECRUITING, now.plusMinutes(10));
-        saveRoom(Track.PORTION, RoomStatus.RECRUITING, now.minusMinutes(10));
-        saveRoom(Track.INDIVIDUAL, RoomStatus.RECRUIT_COMPLETED, now.plusMinutes(5));
+        Room individualRoom = saveRoom(Track.INDIVIDUAL, RoomStatus.RECRUITING, NOW.plusSeconds(1));
+        saveRoom(Track.PORTION, RoomStatus.RECRUITING, NOW);
+        saveRoom(Track.PORTION, RoomStatus.RECRUITING, NOW.minusSeconds(1));
+        saveRoom(Track.INDIVIDUAL, RoomStatus.RECRUIT_COMPLETED, NOW.plusMinutes(5));
 
         // when
         var response = mockMvc.perform(get(ROOMS_URL));
@@ -119,8 +128,8 @@ class RoomControllerTest {
     @DisplayName("트랙을 지정하면 요청한 트랙의 모집방만 반환한다")
     void returnsOnlyRequestedTrack() throws Exception {
         // given
-        saveRoom(Track.PORTION, RoomStatus.RECRUITING, now.plusMinutes(10));
-        saveRoom(Track.INDIVIDUAL, RoomStatus.RECRUITING, now.plusMinutes(10));
+        saveRoom(Track.PORTION, RoomStatus.RECRUITING, NOW.plusMinutes(10));
+        saveRoom(Track.INDIVIDUAL, RoomStatus.RECRUITING, NOW.plusMinutes(10));
 
         // when and then
         mockMvc.perform(get(ROOMS_URL).param("track", "PORTION"))
