@@ -12,8 +12,8 @@ public class SwaggerConfig {
     public OpenAPI openAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("통통 API")
-                        .description("통통 백엔드 API")
+                        .title("TONG:TONG API")
+                        .description("TONG:TONG 백엔드 API")
                         .version("v1"));
     }
 }
