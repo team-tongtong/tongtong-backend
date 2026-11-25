@@ -1,5 +1,6 @@
 package com.likelion.tongtong.domain.store.controller;
 
+import com.likelion.tongtong.domain.store.dto.StoreDetailResponse;
 import com.likelion.tongtong.domain.store.dto.StoreListResponse;
 import com.likelion.tongtong.domain.store.service.StoreService;
 import com.likelion.tongtong.global.response.ApiResponse;
@@ -8,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,5 +25,11 @@ public class StoreController {
     @GetMapping
     public ApiResponse<StoreListResponse> getStores() {
         return ApiResponse.success(SuccessCode.SUCCESS, storeService.getStores());
+    }
+
+    @Operation(summary = "가게 상세 조회", description = "가게 정보와 메뉴 목록, 리뷰 최대 2개를 반환합니다.")
+    @GetMapping("/{storeId}")
+    public ApiResponse<StoreDetailResponse> getStore(@PathVariable Long storeId) {
+        return ApiResponse.success(SuccessCode.SUCCESS, storeService.getStore(storeId));
     }
 }
