@@ -5,16 +5,18 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestConstructor;
+import org.springframework.test.context.TestConstructor.AutowireMode;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -33,10 +35,11 @@ class CorsConfigTest {
     @AutoConfigureMockMvc
     @ActiveProfiles("test")
     @DisplayName("application.yml의 허용 출처를 적용할 때")
+    @RequiredArgsConstructor
+    @TestConstructor(autowireMode = AutowireMode.ALL)
     class 허용_출처 {
 
-        @Autowired
-        private MockMvc mockMvc;
+        private final MockMvc mockMvc;
 
         @ParameterizedTest
         @ValueSource(strings = {
