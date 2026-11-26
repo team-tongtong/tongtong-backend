@@ -55,6 +55,24 @@ class PopularKeywordControllerTest {
     }
 
     @Test
+    @DisplayName("동일 순위의 인기 검색어는 ID 오름차순으로 반환한다")
+    void 동일_순위_ID순_조회() throws Exception {
+        // given
+        popularKeywordRepository.deleteAllInBatch();
+        popularKeywordRepository.saveAll(List.of(
+                PopularKeyword.builder().ranking(2).keyword("피자").build(),
+                PopularKeyword.builder().ranking(1).keyword("치킨").build(),
+                PopularKeyword.builder().ranking(2).keyword("김밥").build()));
+
+        // when & then
+        mockMvc.perform(get(PATH))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.keywords[*].rank", contains(1, 2, 2)))
+                .andExpect(jsonPath("$.data.keywords[*].keyword", contains("치킨", "피자", "김밥")));
+    }
+
+    @Test
     @DisplayName("저장된 인기 검색어가 없으면 성공 응답과 빈 배열을 반환한다")
     void 빈_목록_조회() throws Exception {
         // given
