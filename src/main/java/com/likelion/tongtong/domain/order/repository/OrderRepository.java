@@ -2,6 +2,7 @@ package com.likelion.tongtong.domain.order.repository;
 
 import com.likelion.tongtong.domain.order.entity.Order;
 import com.likelion.tongtong.domain.order.entity.OrderStatus;
+import com.likelion.tongtong.domain.room.entity.RoomStatus;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +31,18 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Optional<Order> findDetailById(@Param("orderId") Long orderId);
 
     long countByRoomIdAndStatusNot(Long roomId, OrderStatus status);
+
+    @Query("""
+            select o from Order o
+            join fetch o.room r
+            join fetch r.store
+            join fetch r.spot
+            where o.user.id = :userId
+              and (:roomStatus is null or r.status = :roomStatus)
+            order by o.createdAt desc, o.id desc
+            """)
+    List<Order> findAllByUserIdAndRoomStatus(@Param("userId") Long userId,
+                                             @Param("roomStatus") RoomStatus roomStatus);
 
     interface RoomParticipantCount {
         Long getRoomId();

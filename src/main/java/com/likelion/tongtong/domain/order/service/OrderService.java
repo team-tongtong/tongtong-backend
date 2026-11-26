@@ -1,10 +1,12 @@
 package com.likelion.tongtong.domain.order.service;
 
 import com.likelion.tongtong.domain.order.dto.OrderDetailResponse;
+import com.likelion.tongtong.domain.order.dto.OrderListResponse;
 import com.likelion.tongtong.domain.order.entity.Order;
 import com.likelion.tongtong.domain.order.entity.OrderStatus;
 import com.likelion.tongtong.domain.order.repository.OrderItemRepository;
 import com.likelion.tongtong.domain.order.repository.OrderRepository;
+import com.likelion.tongtong.domain.room.entity.RoomStatus;
 import com.likelion.tongtong.global.exception.BusinessException;
 import com.likelion.tongtong.global.response.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -32,5 +34,9 @@ public class OrderService {
                 currentParticipants,
                 orderItemRepository.findAllWithMenuByOrderId(orderId)
         );
+    }
+
+    public OrderListResponse getOrders(Long userId, RoomStatus roomStatus) {
+        return OrderListResponse.from(orderRepository.findAllByUserIdAndRoomStatus(userId, roomStatus));
     }
 }
