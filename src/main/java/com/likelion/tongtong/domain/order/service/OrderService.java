@@ -7,6 +7,7 @@ import com.likelion.tongtong.domain.order.entity.OrderStatus;
 import com.likelion.tongtong.domain.order.repository.OrderItemRepository;
 import com.likelion.tongtong.domain.order.repository.OrderRepository;
 import com.likelion.tongtong.domain.room.entity.RoomStatus;
+import com.likelion.tongtong.domain.user.service.CurrentUserService;
 import com.likelion.tongtong.global.exception.BusinessException;
 import com.likelion.tongtong.global.response.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final CurrentUserService currentUserService;
 
     public OrderDetailResponse getOrder(Long orderId) {
         Order order = orderRepository.findDetailById(orderId)
@@ -34,6 +36,10 @@ public class OrderService {
                 currentParticipants,
                 orderItemRepository.findAllWithMenuByOrderId(orderId)
         );
+    }
+
+    public OrderListResponse getMyOrders(RoomStatus roomStatus) {
+        return getOrders(currentUserService.getCurrentUser().getId(), roomStatus);
     }
 
     public OrderListResponse getOrders(Long userId, RoomStatus roomStatus) {
