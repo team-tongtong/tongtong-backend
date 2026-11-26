@@ -15,7 +15,7 @@ import java.util.List;
 @Schema(description = "모집방 생성 요청")
 public record CreateRoomRequest(
         @NotNull(message = "가게 ID를 입력해 주세요.")
-        @Positive(message = "가게 ID는 양수여야 합니다.")
+        @Positive(message = "가게 ID를 1 이상으로 입력해 주세요.")
         Long storeId,
 
         @NotNull(message = "주문 방식을 선택해 주세요.")
@@ -31,17 +31,17 @@ public record CreateRoomRequest(
         List<@NotNull(message = "개인 메뉴 항목을 입력해 주세요.") @Valid MenuItem> items,
 
         @NotNull(message = "통통 스팟 ID를 입력해 주세요.")
-        @Positive(message = "통통 스팟 ID는 양수여야 합니다.")
+        @Positive(message = "통통 스팟 ID를 1 이상으로 입력해 주세요.")
         Long spotId,
 
         @NotNull(message = "모집 인원을 입력해 주세요.")
-        @Min(value = 2, message = "모집 인원은 2명 이상이어야 합니다.")
-        @Max(value = 6, message = "모집 인원은 6명 이하여야 합니다.")
+        @Min(value = 2, message = "모집 인원은 2명 이상 6명 이하로 정해 주세요.")
+        @Max(value = 6, message = "모집 인원은 2명 이상 6명 이하로 정해 주세요.")
         Integer maxParticipants,
 
         @NotNull(message = "모집 시간을 입력해 주세요.")
-        @Min(value = 10, message = "모집 시간은 10분 이상이어야 합니다.")
-        @Max(value = 60, message = "모집 시간은 60분 이하여야 합니다.")
+        @Min(value = 10, message = "모집 시간은 10분 이상 60분 이하로 정해 주세요.")
+        @Max(value = 60, message = "모집 시간은 10분 이상 60분 이하로 정해 주세요.")
         @Schema(description = "10분 단위의 모집 시간", example = "10")
         Integer recruitMinutes,
 
@@ -61,7 +61,7 @@ public record CreateRoomRequest(
         };
     }
 
-    @AssertTrue(message = "모집 시간은 10분 단위여야 합니다.")
+    @AssertTrue(message = "모집 시간을 10분 단위로 정해 주세요.")
     @JsonIgnore
     public boolean isRecruitMinutesStepValid() {
         return recruitMinutes == null || recruitMinutes % 10 == 0;
@@ -69,18 +69,18 @@ public record CreateRoomRequest(
 
     public record SharedMenu(
             @NotNull(message = "함께 나눌 메뉴 ID를 입력해 주세요.")
-            @Positive(message = "메뉴 ID는 양수여야 합니다.")
+            @Positive(message = "함께 나눌 메뉴 ID를 1 이상으로 입력해 주세요.")
             Long menuId
     ) {
     }
 
     public record MenuItem(
             @NotNull(message = "개인 메뉴 ID를 입력해 주세요.")
-            @Positive(message = "메뉴 ID는 양수여야 합니다.")
+            @Positive(message = "개인 메뉴 ID를 1 이상으로 입력해 주세요.")
             Long menuId,
 
             @NotNull(message = "메뉴 수량을 입력해 주세요.")
-            @Positive(message = "메뉴 수량은 1개 이상이어야 합니다.")
+            @Positive(message = "메뉴 수량을 1개 이상으로 입력해 주세요.")
             Integer quantity
     ) {
     }
