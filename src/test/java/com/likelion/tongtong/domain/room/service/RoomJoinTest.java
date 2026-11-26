@@ -144,6 +144,32 @@ class RoomJoinTest {
     }
 
     @Test
+    @DisplayName("나눠통은 내림 잔액까지 합쳐 최소주문금액을 판단한다")
+    void includesPortionRemainderInMinOrderAmount() {
+        // given: 10,001원 메뉴를 3명이 나누면 1인 몫 3,333원, 합계 9,999원 + 잔액 2원 = 10,001원
+        Store portionStore = storeRepository.save(createStore(10_000));
+        Menu sharedMenu = menuRepository.save(createMenu(portionStore, "나눠 먹는 세트", 10_001, true));
+        Room room = roomRepository.save(Room.builder()
+                .store(portionStore)
+                .spot(spot)
+                .track(Track.PORTION)
+                .sharedMenu(sharedMenu)
+                .maxParticipants(3)
+                .recruitDeadline(LocalDateTime.now(clock).plusMinutes(30))
+                .build());
+        saveOrder(room, otherUser, OrderStatus.JOINED, 3_333);
+        saveOrder(room, userRepository.findById(ANOTHER_USER_ID).orElseThrow(), OrderStatus.JOINED, 3_333);
+
+        // when
+        JoinRoomResponse response = roomService.joinRoom(room.getId(), request());
+
+        // then
+        assertThat(response.foodAmount()).isEqualTo(3_333);
+        assertThat(response.roomStatus()).isEqualTo(RoomStatus.RECRUIT_COMPLETED);
+        assertThat(response.paymentStatus()).isEqualTo(PaymentStatus.PAID);
+    }
+
+    @Test
     @DisplayName("나눠통은 함께 나눌 메뉴 1몫을 자동으로 담고 소분 수수료를 더한다")
     void addsSharedMenuPortionForPortionTrack() {
         // given
@@ -268,13 +294,17 @@ class RoomJoinTest {
     }
 
     private Store createStore() {
+        return createStore(13_500);
+    }
+
+    private Store createStore(int minOrderAmount) {
         return Store.builder()
                 .name("두찜 안산한대앞역점")
                 .category("찜닭")
                 .rating(new BigDecimal("4.9"))
                 .reviewCount(259)
                 .orderCount(1_000)
-                .minOrderAmount(13_500)
+                .minOrderAmount(minOrderAmount)
                 .deliveryFee(2_000)
                 .deliveryMinutes(32)
                 .distanceMeters(300)
