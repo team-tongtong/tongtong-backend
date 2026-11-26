@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PopularKeywordRepository extends JpaRepository<PopularKeyword, Long> {
 
-    List<PopularKeyword> findTop10ByOrderByRankingAsc();
+    List<PopularKeyword> findTop10ByOrderByRankingAscIdAsc();
 }

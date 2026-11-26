@@ -14,6 +14,6 @@ public class PopularKeywordService {
     private final PopularKeywordRepository popularKeywordRepository;
 
     public PopularKeywordListResponse getPopularKeywords() {
-        return PopularKeywordListResponse.from(popularKeywordRepository.findTop10ByOrderByRankingAsc());
+        return PopularKeywordListResponse.from(popularKeywordRepository.findTop10ByOrderByRankingAscIdAsc());
     }
 }
