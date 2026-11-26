@@ -4,6 +4,7 @@ import com.likelion.tongtong.domain.room.dto.CreateRoomRequest;
 import com.likelion.tongtong.domain.room.dto.JoinRoomRequest;
 import com.likelion.tongtong.domain.room.dto.JoinRoomResponse;
 import com.likelion.tongtong.domain.room.dto.RoomCreatedResponse;
+import com.likelion.tongtong.domain.room.dto.RoomDetailResponse;
 import com.likelion.tongtong.domain.room.dto.RoomListResponse;
 import com.likelion.tongtong.domain.room.entity.Track;
 import com.likelion.tongtong.domain.room.service.RoomService;
@@ -45,6 +46,13 @@ public class RoomController {
     public ResponseEntity<ApiResponse<RoomCreatedResponse>> createRoom(@Valid @RequestBody CreateRoomRequest request) {
         return ResponseEntity.status(SuccessCode.CREATED.getHttpStatus())
                 .body(ApiResponse.success(SuccessCode.CREATED, roomService.createRoom(request)));
+    }
+
+    @GetMapping("/{roomId}")
+    @Operation(summary = "모집방 상세 조회",
+            description = "모집방 정보, 참여 인원, 표시용 음식값 합계와 1인 분담금을 반환합니다.")
+    public ApiResponse<RoomDetailResponse> getRoomDetail(@PathVariable("roomId") Long roomId) {
+        return ApiResponse.success(SuccessCode.SUCCESS, roomService.getRoomDetail(roomId));
     }
 
     @PostMapping("/{roomId}/orders")

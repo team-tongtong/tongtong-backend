@@ -18,6 +18,16 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
             join fetch room.store
             join fetch room.spot
             left join fetch room.sharedMenu
+            where room.id = :roomId
+            """)
+    Optional<Room> findDetailById(@Param("roomId") Long roomId);
+
+    @Query("""
+            select room
+            from Room room
+            join fetch room.store
+            join fetch room.spot
+            left join fetch room.sharedMenu
             where room.status = :status
               and room.recruitDeadline > :now
               and (:track is null or room.track = :track)
