@@ -1,5 +1,6 @@
 package com.likelion.tongtong.domain.room.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -19,7 +20,10 @@ import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Session;
+import org.hibernate.SessionEventListener;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -146,9 +150,21 @@ class RoomDetailControllerTest {
     private ResultActions getDetail(Room room) throws Exception {
         entityManager.flush();
         entityManager.clear();
-        return mockMvc.perform(get(URL, room.getId()))
+        AtomicInteger statementCount = new AtomicInteger();
+        entityManager.unwrap(Session.class).addEventListeners(new SessionEventListener() {
+            @Override
+            public void jdbcPrepareStatementStart() {
+                statementCount.incrementAndGet();
+            }
+        });
+
+        ResultActions result = mockMvc.perform(get(URL, room.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("SUCCESS"));
+
+        // 모집방과 연관 정보, 현재 사용자, 참여 주문 조회만 실행한다.
+        assertThat(statementCount.get()).isEqualTo(3);
+        return result;
     }
 
     private Room saveRoom(Track track, RoomStatus status, Menu sharedMenu) {
