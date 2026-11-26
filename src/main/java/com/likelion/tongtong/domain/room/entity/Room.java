@@ -83,4 +83,8 @@ public class Room extends BaseTimeEntity {
     public void completeRecruit() {
         this.status = RoomStatus.RECRUIT_COMPLETED;
     }
+
+    public void arrive() {
+        this.status = RoomStatus.ARRIVED;
+    }
 }
