@@ -36,6 +36,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.TestConstructor.AutowireMode;
@@ -56,6 +57,7 @@ class OrderServiceTest {
     private final MenuRepository menuRepository;
     private final SpotRepository spotRepository;
     private final UserRepository userRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     private Store store;
     private Spot spot;
@@ -211,6 +213,28 @@ class OrderServiceTest {
         assertThat(response.orders())
                 .extracting(OrderSummaryResponse::orderId, OrderSummaryResponse::orderStatus)
                 .containsExactly(tuple(canceled.getId(), OrderStatus.CANCELED));
+    }
+
+    @Test
+    @DisplayName("내 주문 목록은 고정 사용자(user 1)의 주문을 반환한다")
+    void returnsFixedUserOrders() {
+        // given
+        jdbcTemplate.update("""
+                insert into users (user_id, created_at, updated_at)
+                select 1, current_timestamp, current_timestamp
+                where not exists (select 1 from users where user_id = 1)
+                """);
+        User fixedUser = userRepository.findById(1L).orElseThrow();
+        Order order = orderRepository.save(createOrder(roomRepository.save(createRoom(RoomStatus.RECRUITING)),
+                fixedUser, OrderStatus.JOINED));
+
+        // when
+        OrderListResponse response = orderService.getMyOrders(null);
+
+        // then
+        assertThat(response.orders())
+                .extracting(OrderSummaryResponse::orderId)
+                .contains(order.getId());
     }
 
     @Test
