@@ -42,7 +42,7 @@ public class OrderService {
         return getOrders(currentUserService.getCurrentUser().getId(), roomStatus);
     }
 
-    public OrderListResponse getOrders(Long userId, RoomStatus roomStatus) {
+    OrderListResponse getOrders(Long userId, RoomStatus roomStatus) {
         return OrderListResponse.from(orderRepository.findAllByUserIdAndRoomStatus(userId, roomStatus));
     }
 }
