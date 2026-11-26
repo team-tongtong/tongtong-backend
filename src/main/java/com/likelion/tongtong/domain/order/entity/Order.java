@@ -1,6 +1,7 @@
 package com.likelion.tongtong.domain.order.entity;
 
 import com.likelion.tongtong.domain.room.entity.Room;
+import com.likelion.tongtong.domain.room.entity.RoomStatus;
 import com.likelion.tongtong.domain.user.entity.User;
 import com.likelion.tongtong.global.common.BaseTimeEntity;
 import jakarta.persistence.Column;
@@ -85,5 +86,10 @@ public class Order extends BaseTimeEntity {
         this.portionFee = portionFee;
         this.totalAmount = totalAmount;
         this.pickupCode = pickupCode;
+    }
+
+    // 모집중인 방에 참여 중일 때만 취소할 수 있다
+    public boolean isCancelable() {
+        return status == OrderStatus.JOINED && room.getStatus() == RoomStatus.RECRUITING;
     }
 }
