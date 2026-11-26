@@ -31,6 +31,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     long countByRoomIdAndStatusNot(Long roomId, OrderStatus status);
 
+    List<Order> findAllByRoomIdAndStatusNot(Long roomId, OrderStatus status);
+
     interface RoomParticipantCount {
         Long getRoomId();
 
