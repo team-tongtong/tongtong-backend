@@ -78,7 +78,7 @@ public class RoomService {
     }
 
     public RoomDetailResponse getRoomDetail(Long roomId) {
-        Room room = roomRepository.findById(roomId)
+        Room room = roomRepository.findDetailById(roomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ROOM_NOT_FOUND));
         Long currentUserId = currentUserService.getCurrentUser().getId();
         List<RoomOrderFood> orders = orderRepository.findRoomOrderFoods(roomId, OrderStatus.CANCELED);
