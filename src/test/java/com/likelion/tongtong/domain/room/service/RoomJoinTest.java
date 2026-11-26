@@ -28,6 +28,7 @@ import com.likelion.tongtong.domain.user.repository.UserRepository;
 import com.likelion.tongtong.global.exception.BusinessException;
 import com.likelion.tongtong.global.response.ErrorCode;
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
@@ -62,6 +63,8 @@ class RoomJoinTest {
     private final SpotRepository spotRepository;
     private final UserRepository userRepository;
     private final JdbcTemplate jdbcTemplate;
+    // 서비스와 같은 기준(KST)으로 마감 시각을 만들어야 서버 시간대와 상관없이 통과한다
+    private final Clock clock;
 
     private Store store;
     private Spot spot;
@@ -85,7 +88,7 @@ class RoomJoinTest {
     @DisplayName("자리가 남은 모집방에 참여하면 결제 대기 주문을 저장하고 모집중을 유지한다")
     void joinsRecruitingRoom() {
         // given
-        Room room = saveRoom(Track.INDIVIDUAL, null, 3, RoomStatus.RECRUITING, LocalDateTime.now().plusMinutes(30));
+        Room room = saveRoom(Track.INDIVIDUAL, null, 3, RoomStatus.RECRUITING, LocalDateTime.now(clock).plusMinutes(30));
         saveOrder(room, otherUser, OrderStatus.JOINED, 7_000);
 
         // when
@@ -107,7 +110,7 @@ class RoomJoinTest {
     @DisplayName("이 참여로 정원과 최소주문금액이 채워지면 모집 완료, 전원 결제 완료, 픽업 코드를 발급한다")
     void completesRecruitWhenFilled() {
         // given
-        Room room = saveRoom(Track.INDIVIDUAL, null, 2, RoomStatus.RECRUITING, LocalDateTime.now().plusMinutes(30));
+        Room room = saveRoom(Track.INDIVIDUAL, null, 2, RoomStatus.RECRUITING, LocalDateTime.now(clock).plusMinutes(30));
         Order hostOrder = saveOrder(room, otherUser, OrderStatus.JOINED, 7_000);
 
         // when
@@ -129,7 +132,7 @@ class RoomJoinTest {
     @DisplayName("정원이 차도 음식값 합계가 최소주문금액보다 적으면 모집중을 유지한다")
     void keepsRecruitingWhenMinOrderAmountNotMet() {
         // given
-        Room room = saveRoom(Track.INDIVIDUAL, null, 2, RoomStatus.RECRUITING, LocalDateTime.now().plusMinutes(30));
+        Room room = saveRoom(Track.INDIVIDUAL, null, 2, RoomStatus.RECRUITING, LocalDateTime.now(clock).plusMinutes(30));
         saveOrder(room, otherUser, OrderStatus.JOINED, 1_000);
 
         // when
@@ -144,7 +147,7 @@ class RoomJoinTest {
     @DisplayName("나눠통은 함께 나눌 메뉴 1몫을 자동으로 담고 소분 수수료를 더한다")
     void addsSharedMenuPortionForPortionTrack() {
         // given
-        Room room = saveRoom(Track.PORTION, jjimdak, 4, RoomStatus.RECRUITING, LocalDateTime.now().plusMinutes(30));
+        Room room = saveRoom(Track.PORTION, jjimdak, 4, RoomStatus.RECRUITING, LocalDateTime.now(clock).plusMinutes(30));
         saveOrder(room, otherUser, OrderStatus.JOINED, 6_950);
 
         // when
@@ -169,7 +172,7 @@ class RoomJoinTest {
     @DisplayName("이미 취소하지 않은 주문이 있으면 ALREADY_JOINED로 거절한다")
     void rejectsAlreadyJoined() {
         // given
-        Room room = saveRoom(Track.INDIVIDUAL, null, 4, RoomStatus.RECRUITING, LocalDateTime.now().plusMinutes(30));
+        Room room = saveRoom(Track.INDIVIDUAL, null, 4, RoomStatus.RECRUITING, LocalDateTime.now(clock).plusMinutes(30));
         saveOrder(room, userRepository.findById(FIXED_USER_ID).orElseThrow(), OrderStatus.JOINED, 7_000);
 
         // when & then
@@ -181,7 +184,7 @@ class RoomJoinTest {
     @DisplayName("취소한 뒤에는 같은 모집방에 다시 참여할 수 있다")
     void allowsRejoinAfterCancel() {
         // given
-        Room room = saveRoom(Track.INDIVIDUAL, null, 4, RoomStatus.RECRUITING, LocalDateTime.now().plusMinutes(30));
+        Room room = saveRoom(Track.INDIVIDUAL, null, 4, RoomStatus.RECRUITING, LocalDateTime.now(clock).plusMinutes(30));
         saveOrder(room, userRepository.findById(FIXED_USER_ID).orElseThrow(), OrderStatus.CANCELED, 7_000);
 
         // when
@@ -195,10 +198,10 @@ class RoomJoinTest {
     @DisplayName("마감 시각이 지났거나 모집중이 아니거나 자리가 없으면 RECRUIT_CLOSED로 거절한다")
     void rejectsClosedRooms() {
         // given
-        Room expired = saveRoom(Track.INDIVIDUAL, null, 4, RoomStatus.RECRUITING, LocalDateTime.now().minusMinutes(1));
+        Room expired = saveRoom(Track.INDIVIDUAL, null, 4, RoomStatus.RECRUITING, LocalDateTime.now(clock).minusMinutes(1));
         Room completed = saveRoom(Track.INDIVIDUAL, null, 4, RoomStatus.RECRUIT_COMPLETED,
-                LocalDateTime.now().plusMinutes(30));
-        Room full = saveRoom(Track.INDIVIDUAL, null, 2, RoomStatus.RECRUITING, LocalDateTime.now().plusMinutes(30));
+                LocalDateTime.now(clock).plusMinutes(30));
+        Room full = saveRoom(Track.INDIVIDUAL, null, 2, RoomStatus.RECRUITING, LocalDateTime.now(clock).plusMinutes(30));
         saveOrder(full, otherUser, OrderStatus.JOINED, 1_000);
         saveOrder(full, userRepository.findById(ANOTHER_USER_ID).orElseThrow(), OrderStatus.JOINED, 1_000);
         JoinRoomRequest request = request(new MenuItem(burger.getId(), 1));
@@ -221,7 +224,7 @@ class RoomJoinTest {
     @DisplayName("아껴통에 메뉴 없이 참여하면 INVALID_INPUT과 안내 문구로 거절한다")
     void rejectsIndividualWithoutMenu() {
         // given
-        Room room = saveRoom(Track.INDIVIDUAL, null, 4, RoomStatus.RECRUITING, LocalDateTime.now().plusMinutes(30));
+        Room room = saveRoom(Track.INDIVIDUAL, null, 4, RoomStatus.RECRUITING, LocalDateTime.now(clock).plusMinutes(30));
 
         // when & then
         assertThatThrownBy(() -> roomService.joinRoom(room.getId(), request()))
@@ -235,7 +238,7 @@ class RoomJoinTest {
     @DisplayName("다른 가게 메뉴는 MENU_STORE_MISMATCH, 없는 메뉴는 MENU_NOT_FOUND로 거절한다")
     void rejectsInvalidMenus() {
         // given
-        Room room = saveRoom(Track.INDIVIDUAL, null, 4, RoomStatus.RECRUITING, LocalDateTime.now().plusMinutes(30));
+        Room room = saveRoom(Track.INDIVIDUAL, null, 4, RoomStatus.RECRUITING, LocalDateTime.now(clock).plusMinutes(30));
         Store otherStore = storeRepository.save(createStore());
         Menu otherStoreMenu = menuRepository.save(createMenu(otherStore, "다른 가게 메뉴", 5_000, false));
 
