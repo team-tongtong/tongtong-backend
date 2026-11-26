@@ -2,9 +2,12 @@ package com.likelion.tongtong.domain.order.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 
 import com.likelion.tongtong.domain.order.dto.OrderDetailResponse;
 import com.likelion.tongtong.domain.order.dto.OrderItemResponse;
+import com.likelion.tongtong.domain.order.dto.OrderListResponse;
+import com.likelion.tongtong.domain.order.dto.OrderSummaryResponse;
 import com.likelion.tongtong.domain.order.entity.Order;
 import com.likelion.tongtong.domain.order.entity.OrderItem;
 import com.likelion.tongtong.domain.order.entity.OrderStatus;
@@ -154,6 +157,75 @@ class OrderServiceTest {
         assertThat(response.cancelable()).isFalse();
     }
 
+    @Test
+    @DisplayName("내 주문 목록은 내 주문만 최근 참여 순으로 반환한다")
+    void returnsOnlyMyOrdersInRecentOrder() {
+        // given
+        User me = userRepository.save(User.create());
+        Order first = orderRepository.save(createOrder(roomRepository.save(createRoom(RoomStatus.RECRUITING)), me,
+                OrderStatus.JOINED));
+        orderRepository.save(createOrder(roomRepository.save(createRoom(RoomStatus.RECRUITING)), OrderStatus.JOINED));
+        Order second = orderRepository.save(createOrder(roomRepository.save(createRoom(RoomStatus.ARRIVED)), me,
+                OrderStatus.PICKED_UP));
+
+        // when
+        OrderListResponse response = orderService.getOrders(me.getId(), null);
+
+        // then
+        assertThat(response.orders())
+                .extracting(OrderSummaryResponse::orderId)
+                .containsExactly(second.getId(), first.getId());
+    }
+
+    @Test
+    @DisplayName("모집방 상태로 거르면 그 상태의 모집방 주문만 반환한다")
+    void filtersByRoomStatus() {
+        // given
+        User me = userRepository.save(User.create());
+        Order recruiting = orderRepository.save(createOrder(roomRepository.save(createRoom(RoomStatus.RECRUITING)), me,
+                OrderStatus.JOINED));
+        orderRepository.save(createOrder(roomRepository.save(createRoom(RoomStatus.RECRUIT_COMPLETED)), me,
+                OrderStatus.JOINED));
+
+        // when
+        OrderListResponse response = orderService.getOrders(me.getId(), RoomStatus.RECRUITING);
+
+        // then
+        assertThat(response.orders())
+                .extracting(OrderSummaryResponse::orderId)
+                .containsExactly(recruiting.getId());
+    }
+
+    @Test
+    @DisplayName("취소한 주문도 주문 내역에 포함한다")
+    void includesCanceledOrders() {
+        // given
+        User me = userRepository.save(User.create());
+        Order canceled = orderRepository.save(createOrder(roomRepository.save(createRoom(RoomStatus.RECRUITING)), me,
+                OrderStatus.CANCELED));
+
+        // when
+        OrderListResponse response = orderService.getOrders(me.getId(), null);
+
+        // then
+        assertThat(response.orders())
+                .extracting(OrderSummaryResponse::orderId, OrderSummaryResponse::orderStatus)
+                .containsExactly(tuple(canceled.getId(), OrderStatus.CANCELED));
+    }
+
+    @Test
+    @DisplayName("주문이 없으면 빈 목록을 반환한다")
+    void returnsEmptyListWhenNoOrders() {
+        // given
+        User me = userRepository.save(User.create());
+
+        // when
+        OrderListResponse response = orderService.getOrders(me.getId(), null);
+
+        // then
+        assertThat(response.orders()).isEmpty();
+    }
+
     private Store createStore() {
         return Store.builder()
                 .name("두찜 안산한대앞역점")
@@ -190,9 +262,13 @@ class OrderServiceTest {
     }
 
     private Order createOrder(Room room, OrderStatus status) {
+        return createOrder(room, userRepository.save(User.create()), status);
+    }
+
+    private Order createOrder(Room room, User user, OrderStatus status) {
         return Order.builder()
                 .room(room)
-                .user(userRepository.save(User.create()))
+                .user(user)
                 .status(status)
                 .paymentMethod(PaymentMethod.KAKAO_PAY)
                 .foodAmount(7_000)
