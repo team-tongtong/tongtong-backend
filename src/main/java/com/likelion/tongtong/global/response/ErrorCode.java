@@ -20,6 +20,7 @@ public enum ErrorCode {
     // 가게·메뉴·스팟
     STORE_NOT_FOUND("STORE_NOT_FOUND", "가게를 찾을 수 없어요.", HttpStatus.NOT_FOUND),
     SPOT_NOT_FOUND("SPOT_NOT_FOUND", "스팟을 찾을 수 없어요.", HttpStatus.NOT_FOUND),
+    MENU_NOT_FOUND("MENU_NOT_FOUND", "메뉴를 찾을 수 없어요.", HttpStatus.NOT_FOUND),
     MENU_STORE_MISMATCH("MENU_STORE_MISMATCH", "다른 가게의 메뉴가 섞여 있어요.", HttpStatus.BAD_REQUEST),
     NOT_PORTIONABLE_MENU("NOT_PORTIONABLE_MENU", "이 메뉴는 나눠 담을 수 없어요.", HttpStatus.BAD_REQUEST),
 
