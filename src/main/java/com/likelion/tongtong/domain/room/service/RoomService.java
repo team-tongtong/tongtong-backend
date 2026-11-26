@@ -244,6 +244,11 @@ public class RoomService {
             return;
         }
         long foodTotal = participants.stream().mapToLong(Order::getFoodAmount).sum();
+        Menu sharedMenu = room.getSharedMenu();
+        if (sharedMenu != null) {
+            // 1인 몫을 내림해서 생긴 잔액도 가게에는 결제되므로 합계에 더한다 (정원이 다 찼을 때만 여기 온다)
+            foodTotal += sharedMenu.getPrice() % room.getMaxParticipants();
+        }
         if (foodTotal < store.getMinOrderAmount()) {
             return;
         }
