@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -159,12 +160,26 @@ class RoomCreationTest {
                 400, "MENU_STORE_MISMATCH");
         assertError(request(store.getId(), spot.getId(), "PORTION", sharedMenu(personalMenu), "[]", 10),
                 400, "NOT_PORTIONABLE_MENU");
-        assertError(request(store.getId(), spot.getId(), "INDIVIDUAL", "null",
-                        "[{\"menuId\":" + UNKNOWN_ID + ",\"quantity\":1}]", 10),
-                400, "INVALID_INPUT");
+        String missingPersonalMenu = request(store.getId(), spot.getId(), "INDIVIDUAL", "null",
+                "[{\"menuId\":" + UNKNOWN_ID + ",\"quantity\":1}]", 10);
+        String missingSharedMenu = request(store.getId(), spot.getId(), "PORTION",
+                "{\"menuId\":" + UNKNOWN_ID + "}", "[]", 10);
+        for (String body : List.of(missingPersonalMenu, missingSharedMenu)) {
+            postRoom(body).andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.code").value("MENU_NOT_FOUND"))
+                    .andExpect(jsonPath("$.message").value("메뉴를 찾을 수 없어요."));
+        }
         assertError(request(store.getId(), spot.getId(), "INDIVIDUAL", "null",
                         personalItems(personalMenu, Integer.MAX_VALUE), 10),
                 400, "INVALID_INPUT");
+    }
+
+    @Test
+    @DisplayName("Swagger에 모집방 생성 성공 응답을 201로 표시한다")
+    void documentsCreatedResponse() throws Exception {
+        mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.paths['/api/v1/rooms'].post.responses['201'].content").exists());
     }
 
     @Test

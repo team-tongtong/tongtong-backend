@@ -150,7 +150,7 @@ public class RoomService {
         Map<Long, Menu> menus = menuRepository.findAllById(menuIds).stream()
                 .collect(Collectors.toMap(Menu::getId, Function.identity()));
         if (menus.size() != menuIds.size()) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new BusinessException(ErrorCode.MENU_NOT_FOUND);
         }
         if (menus.values().stream().anyMatch(menu -> !menu.getStore().getId().equals(storeId))) {
             throw new BusinessException(ErrorCode.MENU_STORE_MISMATCH);
