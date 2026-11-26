@@ -74,4 +74,13 @@ public class Room extends BaseTimeEntity {
         this.recruitDeadline = recruitDeadline;
         this.status = status != null ? status : RoomStatus.RECRUITING;
     }
+
+    // 모집중이고 마감 시각 전일 때만 참여할 수 있다
+    public boolean isJoinable(LocalDateTime now) {
+        return status == RoomStatus.RECRUITING && recruitDeadline.isAfter(now);
+    }
+
+    public void completeRecruit() {
+        this.status = RoomStatus.RECRUIT_COMPLETED;
+    }
 }

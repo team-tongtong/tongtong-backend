@@ -92,4 +92,10 @@ public class Order extends BaseTimeEntity {
     public boolean isCancelable() {
         return status == OrderStatus.JOINED && room.getStatus() == RoomStatus.RECRUITING;
     }
+
+    // 모집 완료 순간 결제 완료로 바꾸고 픽업 코드를 발급한다
+    public void pay(String pickupCode) {
+        this.paymentStatus = PaymentStatus.PAID;
+        this.pickupCode = pickupCode;
+    }
 }

@@ -1,6 +1,8 @@
 package com.likelion.tongtong.domain.room.controller;
 
 import com.likelion.tongtong.domain.room.dto.CreateRoomRequest;
+import com.likelion.tongtong.domain.room.dto.JoinRoomRequest;
+import com.likelion.tongtong.domain.room.dto.JoinRoomResponse;
 import com.likelion.tongtong.domain.room.dto.RoomCreatedResponse;
 import com.likelion.tongtong.domain.room.dto.RoomListResponse;
 import com.likelion.tongtong.domain.room.entity.Track;
@@ -13,6 +15,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,5 +45,17 @@ public class RoomController {
     public ResponseEntity<ApiResponse<RoomCreatedResponse>> createRoom(@Valid @RequestBody CreateRoomRequest request) {
         return ResponseEntity.status(SuccessCode.CREATED.getHttpStatus())
                 .body(ApiResponse.success(SuccessCode.CREATED, roomService.createRoom(request)));
+    }
+
+    @PostMapping("/{roomId}/orders")
+    @Operation(summary = "모집방 참여",
+            description = "고른 메뉴와 결제 수단으로 모집방에 참여합니다. 이 참여로 인원과 최소주문금액이 모두 채워지면 "
+                    + "모집 완료로 바뀌고 참여자 전원이 결제 완료됩니다.",
+            responses = @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "201", description = "참여 성공", useReturnTypeSchema = true))
+    public ResponseEntity<ApiResponse<JoinRoomResponse>> joinRoom(@PathVariable Long roomId,
+                                                                  @Valid @RequestBody JoinRoomRequest request) {
+        return ResponseEntity.status(SuccessCode.CREATED.getHttpStatus())
+                .body(ApiResponse.success(SuccessCode.CREATED, roomService.joinRoom(roomId, request)));
     }
 }
