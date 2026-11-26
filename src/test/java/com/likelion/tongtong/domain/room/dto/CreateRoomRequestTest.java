@@ -1,6 +1,7 @@
 package com.likelion.tongtong.domain.room.dto;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 import com.likelion.tongtong.domain.order.entity.PaymentMethod;
 import com.likelion.tongtong.domain.room.dto.CreateRoomRequest.MenuItem;
@@ -57,13 +58,42 @@ class CreateRoomRequestTest {
     @DisplayName("정원 범위, 모집 시간 단위와 중첩 메뉴 수량을 검증한다")
     void rejectsInvalidCapacityDurationAndQuantity() {
         // given
-        var request = request(Track.PORTION, new SharedMenu(null), List.of(new MenuItem(3L, 0)), 7, 15);
+        var request = new CreateRoomRequest(0L, Track.PORTION, new SharedMenu(0L), List.of(new MenuItem(-1L, 0)),
+                -1L, 7, 15, PaymentMethod.KAKAO_PAY);
 
         // when and then
         assertThat(VALIDATOR_FACTORY.getValidator().validate(request))
-                .extracting(error -> error.getPropertyPath().toString())
-                .containsExactlyInAnyOrder("maxParticipants", "recruitMinutesStepValid", "items[0].quantity",
-                        "sharedMenu.menuId");
+                .extracting(error -> error.getPropertyPath().toString(), error -> error.getMessage())
+                .containsExactlyInAnyOrder(
+                        tuple("storeId", "가게 ID를 1 이상으로 입력해 주세요."),
+                        tuple("spotId", "통통 스팟 ID를 1 이상으로 입력해 주세요."),
+                        tuple("maxParticipants", "모집 인원은 2명 이상 6명 이하로 정해 주세요."),
+                        tuple("recruitMinutesStepValid", "모집 시간을 10분 단위로 정해 주세요."),
+                        tuple("sharedMenu.menuId", "함께 나눌 메뉴 ID를 1 이상으로 입력해 주세요."),
+                        tuple("items[0].menuId", "개인 메뉴 ID를 1 이상으로 입력해 주세요."),
+                        tuple("items[0].quantity", "메뉴 수량을 1개 이상으로 입력해 주세요."));
+        assertThat(VALIDATOR_FACTORY.getValidator().validate(
+                request(Track.PORTION, new SharedMenu(null), List.of(), 4, 10)))
+                .extracting(error -> error.getPropertyPath().toString(), error -> error.getMessage())
+                .containsExactly(tuple("sharedMenu.menuId", "함께 나눌 메뉴 ID를 입력해 주세요."));
+    }
+
+    @Test
+    @DisplayName("정원과 모집 시간이 허용 범위를 벗어나면 해요체 안내 문구를 반환한다")
+    void rejectsOutOfRangeValuesWithValidationMessages() {
+        // given
+        var validator = VALIDATOR_FACTORY.getValidator();
+        var belowMinimum = request(Track.PORTION, new SharedMenu(2L), List.of(), 1, 0);
+        var aboveMaximum = request(Track.PORTION, new SharedMenu(2L), List.of(), 7, 70);
+
+        // when and then
+        for (CreateRoomRequest request : List.of(belowMinimum, aboveMaximum)) {
+            assertThat(validator.validate(request))
+                    .extracting(error -> error.getPropertyPath().toString(), error -> error.getMessage())
+                    .containsExactlyInAnyOrder(
+                            tuple("maxParticipants", "모집 인원은 2명 이상 6명 이하로 정해 주세요."),
+                            tuple("recruitMinutes", "모집 시간은 10분 이상 60분 이하로 정해 주세요."));
+        }
     }
 
     private CreateRoomRequest request(Track track, SharedMenu sharedMenu, List<MenuItem> items, int capacity, int minutes) {
