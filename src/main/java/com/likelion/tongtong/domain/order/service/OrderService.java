@@ -42,6 +42,7 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
         // 참여로 모집이 완료되는 순간과 겹치지 않도록 모집방을 잠그고 최신 상태로 판단한다
+        // Order.room은 LAZY여야 이 잠금 조회가 모집방을 처음 읽어 최신 상태가 된다 (주문을 join fetch로 읽으면 예전 값이 남는다)
         roomRepository.findByIdForUpdate(order.getRoom().getId());
         if (!order.isCancelable()) {
             throw new BusinessException(ErrorCode.CANNOT_CANCEL);
