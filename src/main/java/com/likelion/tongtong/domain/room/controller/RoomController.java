@@ -47,7 +47,7 @@ public class RoomController {
     }
 
     @GetMapping("/{roomId}")
-    @Operation(summary = "공동 주문 상세 조회",
+    @Operation(summary = "모집방 상세 조회",
             description = "모집방 정보, 참여 인원, 표시용 음식값 합계와 1인 분담금을 반환합니다.")
     public ApiResponse<RoomDetailResponse> getRoomDetail(@PathVariable("roomId") Long roomId) {
         return ApiResponse.success(SuccessCode.SUCCESS, roomService.getRoomDetail(roomId));
