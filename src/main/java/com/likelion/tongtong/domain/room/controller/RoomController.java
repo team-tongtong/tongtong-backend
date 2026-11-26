@@ -11,13 +11,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -36,10 +35,12 @@ public class RoomController {
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "모집방 생성",
-            description = "선택한 주문 방식과 모집 조건으로 모집방을 만들고 방장의 주문을 결제 대기 상태로 저장합니다.")
-    public ApiResponse<RoomCreatedResponse> createRoom(@Valid @RequestBody CreateRoomRequest request) {
-        return ApiResponse.success(SuccessCode.CREATED, roomService.createRoom(request));
+            description = "선택한 주문 방식과 모집 조건으로 모집방을 만들고 방장의 주문을 결제 대기 상태로 저장합니다.",
+            responses = @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "201", description = "생성 성공", useReturnTypeSchema = true))
+    public ResponseEntity<ApiResponse<RoomCreatedResponse>> createRoom(@Valid @RequestBody CreateRoomRequest request) {
+        return ResponseEntity.status(SuccessCode.CREATED.getHttpStatus())
+                .body(ApiResponse.success(SuccessCode.CREATED, roomService.createRoom(request)));
     }
 }
