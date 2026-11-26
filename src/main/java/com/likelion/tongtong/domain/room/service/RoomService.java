@@ -5,13 +5,16 @@ import com.likelion.tongtong.domain.order.entity.OrderItem;
 import com.likelion.tongtong.domain.order.entity.OrderStatus;
 import com.likelion.tongtong.domain.order.repository.OrderItemRepository;
 import com.likelion.tongtong.domain.order.repository.OrderRepository;
+import com.likelion.tongtong.domain.order.repository.OrderRepository.RoomOrderFood;
 import com.likelion.tongtong.domain.order.repository.OrderRepository.RoomParticipantCount;
 import com.likelion.tongtong.domain.order.service.OrderAmountCalculator;
 import com.likelion.tongtong.domain.order.service.OrderAmountCalculator.MenuLine;
 import com.likelion.tongtong.domain.order.service.OrderAmountCalculator.OrderAmounts;
+import com.likelion.tongtong.domain.order.service.OrderAmountCalculator.OrderShares;
 import com.likelion.tongtong.domain.room.dto.CreateRoomRequest;
 import com.likelion.tongtong.domain.room.dto.CreateRoomRequest.MenuItem;
 import com.likelion.tongtong.domain.room.dto.RoomCreatedResponse;
+import com.likelion.tongtong.domain.room.dto.RoomDetailResponse;
 import com.likelion.tongtong.domain.room.dto.RoomListResponse;
 import com.likelion.tongtong.domain.room.dto.RoomSummaryResponse;
 import com.likelion.tongtong.domain.room.entity.Room;
@@ -72,6 +75,22 @@ public class RoomService {
                 .map(room -> RoomSummaryResponse.from(room, participantsByRoom.getOrDefault(room.getId(), 0L)))
                 .toList();
         return new RoomListResponse(summaries);
+    }
+
+    public RoomDetailResponse getRoomDetail(Long roomId) {
+        Room room = roomRepository.findDetailById(roomId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ROOM_NOT_FOUND));
+        Long currentUserId = currentUserService.getCurrentUser().getId();
+        List<RoomOrderFood> orders = orderRepository.findRoomOrderFoods(roomId, OrderStatus.CANCELED);
+        int currentFoodTotal = Math.toIntExact(orders.stream().mapToLong(RoomOrderFood::getFoodAmount).sum());
+        boolean joinedByMe = orders.stream().anyMatch(order -> currentUserId.equals(order.getUserId()));
+
+        Menu sharedMenu = room.getSharedMenu();
+        Integer sharedMenuPrice = sharedMenu == null ? null : sharedMenu.getPrice();
+        OrderShares shares = orderAmountCalculator.calculateShares(room.getTrack(), room.getMaxParticipants(),
+                room.getStore().getDeliveryFee(), sharedMenuPrice);
+
+        return RoomDetailResponse.from(room, orders.size(), currentFoodTotal, shares, joinedByMe);
     }
 
     @Transactional
