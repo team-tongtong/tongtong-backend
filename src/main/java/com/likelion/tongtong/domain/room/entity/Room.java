@@ -84,6 +84,15 @@ public class Room extends BaseTimeEntity {
         this.status = RoomStatus.RECRUIT_COMPLETED;
     }
 
+    // 마감 시각이 지났는데 아직 모집중이면 자동 취소 대상이다
+    public boolean isExpired(LocalDateTime now) {
+        return status == RoomStatus.RECRUITING && !recruitDeadline.isAfter(now);
+    }
+
+    public void cancelRecruit() {
+        this.status = RoomStatus.CANCELED;
+    }
+
     public void arrive() {
         this.status = RoomStatus.ARRIVED;
     }
