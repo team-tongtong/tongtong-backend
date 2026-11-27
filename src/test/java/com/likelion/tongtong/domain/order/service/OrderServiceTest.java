@@ -216,6 +216,47 @@ class OrderServiceTest {
     }
 
     @Test
+    @DisplayName("모집중인 방에서 내가 취소한 주문은 모집중 탭에서 빠지고 취소 탭에 보인다")
+    void showsMyCanceledOrderInCanceledTab() {
+        // given
+        User me = userRepository.save(User.create());
+        Room recruitingRoom = roomRepository.save(createRoom(RoomStatus.RECRUITING));
+        Order canceled = orderRepository.save(createOrder(recruitingRoom, me, OrderStatus.CANCELED));
+        Order rejoined = orderRepository.save(createOrder(recruitingRoom, me, OrderStatus.JOINED));
+
+        // when
+        OrderListResponse recruitingTab = orderService.getOrders(me.getId(), RoomStatus.RECRUITING);
+        OrderListResponse canceledTab = orderService.getOrders(me.getId(), RoomStatus.CANCELED);
+
+        // then
+        assertThat(recruitingTab.orders())
+                .extracting(OrderSummaryResponse::orderId)
+                .containsExactly(rejoined.getId());
+        assertThat(canceledTab.orders())
+                .extracting(OrderSummaryResponse::orderId)
+                .containsExactly(canceled.getId());
+    }
+
+    @Test
+    @DisplayName("취소된 모집방의 주문은 취소 탭에 보인다")
+    void showsCanceledRoomOrderInCanceledTab() {
+        // given
+        User me = userRepository.save(User.create());
+        Order inCanceledRoom = orderRepository.save(createOrder(roomRepository.save(createRoom(RoomStatus.CANCELED)), me,
+                OrderStatus.JOINED));
+        orderRepository.save(createOrder(roomRepository.save(createRoom(RoomStatus.RECRUITING)), me,
+                OrderStatus.JOINED));
+
+        // when
+        OrderListResponse canceledTab = orderService.getOrders(me.getId(), RoomStatus.CANCELED);
+
+        // then
+        assertThat(canceledTab.orders())
+                .extracting(OrderSummaryResponse::orderId)
+                .containsExactly(inCanceledRoom.getId());
+    }
+
+    @Test
     @DisplayName("내 주문 목록은 고정 사용자(user 1)의 주문을 반환한다")
     void returnsFixedUserOrders() {
         // given
