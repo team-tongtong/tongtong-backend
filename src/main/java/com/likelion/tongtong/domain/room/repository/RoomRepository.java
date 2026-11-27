@@ -41,4 +41,12 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
     // JPA 잠금이 만드는 for update of 문법은 DB마다 지원이 달라, 어디서나 되는 for update로 직접 쓴다
     @Query(value = "select * from room where room_id = :roomId for update", nativeQuery = true)
     Optional<Room> findByIdForUpdate(@Param("roomId") Long roomId);
+
+    @Query("""
+            select room.id
+            from Room room
+            where room.status = :status
+              and room.recruitDeadline <= :now
+            """)
+    List<Long> findExpiredRoomIds(@Param("status") RoomStatus status, @Param("now") LocalDateTime now);
 }
