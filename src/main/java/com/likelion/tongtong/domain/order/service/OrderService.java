@@ -2,13 +2,17 @@ package com.likelion.tongtong.domain.order.service;
 
 import com.likelion.tongtong.domain.order.dto.CancelOrderResponse;
 import com.likelion.tongtong.domain.order.dto.OrderDetailResponse;
+import com.likelion.tongtong.domain.order.dto.OrderListResponse;
 import com.likelion.tongtong.domain.order.entity.Order;
 import com.likelion.tongtong.domain.order.entity.OrderStatus;
 import com.likelion.tongtong.domain.order.repository.OrderItemRepository;
 import com.likelion.tongtong.domain.order.repository.OrderRepository;
+import com.likelion.tongtong.domain.room.entity.RoomStatus;
 import com.likelion.tongtong.domain.room.repository.RoomRepository;
+import com.likelion.tongtong.domain.user.service.CurrentUserService;
 import com.likelion.tongtong.global.exception.BusinessException;
 import com.likelion.tongtong.global.response.ErrorCode;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +24,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final CurrentUserService currentUserService;
     private final RoomRepository roomRepository;
 
     public OrderDetailResponse getOrder(Long orderId) {
@@ -35,6 +40,23 @@ public class OrderService {
                 currentParticipants,
                 orderItemRepository.findAllWithMenuByOrderId(orderId)
         );
+    }
+
+    public OrderListResponse getMyOrders(RoomStatus roomStatus) {
+        return getOrders(currentUserService.getCurrentUser().getId(), roomStatus);
+    }
+
+    // 내가 취소한 주문은 방이 모집중이어도 취소 탭에 보여 준다 (프론트와 합의)
+    OrderListResponse getOrders(Long userId, RoomStatus roomStatus) {
+        List<Order> orders;
+        if (roomStatus == null) {
+            orders = orderRepository.findAllByUserId(userId);
+        } else if (roomStatus == RoomStatus.CANCELED) {
+            orders = orderRepository.findCanceledByUserId(userId, RoomStatus.CANCELED, OrderStatus.CANCELED);
+        } else {
+            orders = orderRepository.findActiveByUserIdAndRoomStatus(userId, roomStatus, OrderStatus.CANCELED);
+        }
+        return OrderListResponse.from(orders);
     }
 
     @Transactional
