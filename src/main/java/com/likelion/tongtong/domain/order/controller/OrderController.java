@@ -41,7 +41,7 @@ public class OrderController {
     }
 
     @Operation(summary = "주문 취소",
-            description = "모집중인 방에 참여 중인 주문을 취소합니다. 방장이 취소해도 방장만 빠지고 모집방은 유지됩니다.")
+            description = "고정 사용자의 주문 중 모집중인 방에 참여 중인 주문을 취소합니다. 방장이 취소해도 방장만 빠지고 모집방은 유지됩니다.")
     @PatchMapping("/{orderId}/cancel")
     public ApiResponse<CancelOrderResponse> cancelOrder(@PathVariable Long orderId) {
         return ApiResponse.success(SuccessCode.SUCCESS, orderService.cancelOrder(orderId));

@@ -63,6 +63,10 @@ public class OrderService {
     public CancelOrderResponse cancelOrder(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
+        // 다른 사람의 주문은 존재 여부를 드러내지 않도록 없는 주문과 같이 처리한다
+        if (!order.getUser().getId().equals(currentUserService.getCurrentUser().getId())) {
+            throw new BusinessException(ErrorCode.ORDER_NOT_FOUND);
+        }
         // 참여로 모집이 완료되는 순간과 겹치지 않도록 모집방을 잠그고 최신 상태로 판단한다
         // Order.room은 LAZY여야 이 잠금 조회가 모집방을 처음 읽어 최신 상태가 된다 (주문을 join fetch로 읽으면 예전 값이 남는다)
         roomRepository.findByIdForUpdate(order.getRoom().getId());
