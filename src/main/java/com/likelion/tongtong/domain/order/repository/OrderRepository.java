@@ -72,9 +72,25 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
                                      @Param("canceledRoomStatus") RoomStatus canceledRoomStatus,
                                      @Param("canceledOrderStatus") OrderStatus canceledOrderStatus);
 
+    List<Order> findAllByRoomIdAndStatusNot(Long roomId, OrderStatus status);
+
     interface RoomParticipantCount {
         Long getRoomId();
 
         long getParticipantCount();
+    }
+
+    @Query("""
+            select orders.user.id as userId, orders.foodAmount as foodAmount
+            from Order orders
+            where orders.room.id = :roomId and orders.status <> :excludedStatus
+            """)
+    List<RoomOrderFood> findRoomOrderFoods(@Param("roomId") Long roomId,
+                                         @Param("excludedStatus") OrderStatus excludedStatus);
+
+    interface RoomOrderFood {
+        Long getUserId();
+
+        int getFoodAmount();
     }
 }

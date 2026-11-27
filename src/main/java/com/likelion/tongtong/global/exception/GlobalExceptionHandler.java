@@ -29,7 +29,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ApiResponse<Void>> handleBusinessException(BusinessException e) {
-        return toResponse(e.getErrorCode());
+        ErrorCode errorCode = e.getErrorCode();
+        return ResponseEntity.status(errorCode.getHttpStatus())
+                .body(ApiResponse.fail(errorCode, e.getMessage()));
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
