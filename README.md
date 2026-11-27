@@ -1,9 +1,9 @@
 # TONGTONG-SERVER
 
 ---
-**통통**은 <!-- TODO: 서비스 한 줄 소개 (예: OO한 사람들을 위한 OO 플랫폼입니다.) -->
+**통통**은 혼자 주문하기 부담스러울 때 가까운 이웃과 배달 주문을 함께하는 공동 주문 서비스입니다.
 <br/><br/>
-본 저장소는 통통 서비스의 백엔드 서버로, <!-- TODO: 관리하는 데이터와 제공하는 API 소개 -->
+본 저장소는 통통 서비스의 백엔드 서버로, 가게 · 메뉴 · 통통 스팟 정보와 모집방 · 주문 데이터를 관리하고 공동 주문의 모집, 참여, 결제 처리, 픽업까지의 API를 제공합니다.
 <br/>
 
 ## **✨ Contributors**
@@ -20,7 +20,7 @@
 | :--- | :--- |
 | 배포 서버 | https://tongtong-api.p-e.kr |
 | Swagger | https://tongtong-api.p-e.kr/swagger-ui/index.html |
-| ERD | <!-- TODO: ERD Cloud 링크 --> |
+| ERD | https://www.erdcloud.com/d/oDNgpohyGuboyRbig |
 
 <br/>
 
@@ -42,8 +42,13 @@
 
 | 도메인 | 기능 |
 | :--- | :--- |
-| `user` | <!-- TODO --> |
-| `global` | 공통 응답 · 에러 코드, 전역 예외 처리, CORS · Swagger · JPA 설정 |
+| `store` | 가게 전체 목록 조회, 가게 상세(메뉴 · 리뷰) 조회 |
+| `spot` | 통통 스팟(수령 장소) 목록 조회 |
+| `search` | 인기 검색어 조회 |
+| `room` | 모집방 생성 · 목록 · 상세 조회, 모집방 참여(모집 완료 시 전원 결제 · 픽업 코드 발급), 마감된 모집방 자동 취소 스케줄러, 배달 완료 전환(시연용) |
+| `order` | 내 주문 목록 · 상세 조회, 주문 취소, 픽업 코드 입력 |
+| `user` | 고정 사용자 조회 (인증 없이 사용자 1명으로 동작) |
+| `global` | 공통 응답 · 에러 코드, 전역 예외 처리, CORS · Swagger · JPA · 스케줄링 · 시간(KST) 설정 |
 
 <br/>
 
@@ -74,11 +79,16 @@
 🗃️ tongtong-server
 └── 📂 src/main/java/com/likelion/tongtong
     ├── 📂 domain
-    │   └── 📁 user            # 회원
+    │   ├── 📁 store           # 가게 · 메뉴 · 리뷰
+    │   ├── 📁 spot            # 통통 스팟
+    │   ├── 📁 search          # 인기 검색어
+    │   ├── 📁 room            # 모집방, 자동 취소 스케줄러
+    │   ├── 📁 order           # 주문 · 주문 메뉴, 금액 계산
+    │   └── 📁 user            # 회원(고정 사용자)
     │
     └── 📂 global
         ├── 📁 common          # BaseTimeEntity, 페이지 응답
-        ├── 📁 config          # CORS, JPA, Swagger 설정
+        ├── 📁 config          # CORS, JPA, Swagger, 스케줄링, 시간(Clock) 설정
         ├── 📁 response        # 공통 응답(ApiResponse), 성공·에러 코드
         └── 📁 exception       # 비즈니스 예외, 전역 예외 처리
 ```
