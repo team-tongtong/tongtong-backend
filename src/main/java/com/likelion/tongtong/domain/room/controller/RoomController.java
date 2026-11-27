@@ -1,5 +1,6 @@
 package com.likelion.tongtong.domain.room.controller;
 
+import com.likelion.tongtong.domain.room.dto.ArriveRoomResponse;
 import com.likelion.tongtong.domain.room.dto.CreateRoomRequest;
 import com.likelion.tongtong.domain.room.dto.JoinRoomRequest;
 import com.likelion.tongtong.domain.room.dto.JoinRoomResponse;
@@ -16,6 +17,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -65,5 +67,12 @@ public class RoomController {
                                                                   @Valid @RequestBody JoinRoomRequest request) {
         return ResponseEntity.status(SuccessCode.CREATED.getHttpStatus())
                 .body(ApiResponse.success(SuccessCode.CREATED, roomService.joinRoom(roomId, request)));
+    }
+
+    @PatchMapping("/{roomId}/arrive")
+    @Operation(summary = "배달 완료 전환",
+            description = "모집 완료된 방을 배달 완료로 바꾸고 참여자별 픽업 코드를 반환합니다. 실제 배달 연동을 대신하며 발표 후 제거합니다.")
+    public ApiResponse<ArriveRoomResponse> arriveRoom(@PathVariable Long roomId) {
+        return ApiResponse.success(SuccessCode.SUCCESS, roomService.arriveRoom(roomId));
     }
 }

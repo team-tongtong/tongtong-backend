@@ -92,4 +92,8 @@ public class Room extends BaseTimeEntity {
     public void cancelRecruit() {
         this.status = RoomStatus.CANCELED;
     }
+
+    public void arrive() {
+        this.status = RoomStatus.ARRIVED;
+    }
 }

@@ -11,6 +11,7 @@ import com.likelion.tongtong.domain.order.service.OrderAmountCalculator;
 import com.likelion.tongtong.domain.order.service.OrderAmountCalculator.MenuLine;
 import com.likelion.tongtong.domain.order.service.OrderAmountCalculator.OrderAmounts;
 import com.likelion.tongtong.domain.order.service.OrderAmountCalculator.OrderShares;
+import com.likelion.tongtong.domain.room.dto.ArriveRoomResponse;
 import com.likelion.tongtong.domain.room.dto.CreateRoomRequest;
 import com.likelion.tongtong.domain.room.dto.CreateRoomRequest.MenuItem;
 import com.likelion.tongtong.domain.room.dto.JoinRoomRequest;
@@ -37,6 +38,7 @@ import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -285,5 +287,21 @@ public class RoomService {
             code = String.format("%05d", PICKUP_CODE_RANDOM.nextInt(100_000));
         } while (!issuedCodes.add(code));
         return code;
+    }
+
+    // 시연용: 실제 배달 연동 대신 모집 완료된 방을 배달 완료로 바꾸고 픽업 코드를 보여 준다
+    @Transactional
+    public ArriveRoomResponse arriveRoom(Long roomId) {
+        Room room = roomRepository.findByIdForUpdate(roomId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ROOM_NOT_FOUND));
+        if (room.getStatus() != RoomStatus.RECRUIT_COMPLETED) {
+            throw new BusinessException(ErrorCode.INVALID_STATUS_TRANSITION);
+        }
+
+        room.arrive();
+        List<Order> orders = orderRepository.findAllByRoomIdAndStatusNot(roomId, OrderStatus.CANCELED).stream()
+                .sorted(Comparator.comparing(Order::getId))
+                .toList();
+        return ArriveRoomResponse.from(room, orders);
     }
 }
