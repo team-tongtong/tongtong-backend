@@ -3,6 +3,7 @@ package com.likelion.tongtong.domain.order.service;
 import com.likelion.tongtong.domain.order.dto.CancelOrderResponse;
 import com.likelion.tongtong.domain.order.dto.OrderDetailResponse;
 import com.likelion.tongtong.domain.order.dto.OrderListResponse;
+import com.likelion.tongtong.domain.order.dto.PickupOrderResponse;
 import com.likelion.tongtong.domain.order.entity.Order;
 import com.likelion.tongtong.domain.order.entity.OrderStatus;
 import com.likelion.tongtong.domain.order.repository.OrderItemRepository;
@@ -76,5 +77,28 @@ public class OrderService {
 
         order.cancel();
         return CancelOrderResponse.from(order);
+    }
+
+    @Transactional
+    public PickupOrderResponse pickUpOrder(Long orderId, String code) {
+        Order order = orderRepository.findDetailById(orderId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
+        // 다른 사람의 주문은 존재 여부를 드러내지 않도록 없는 주문과 같이 처리한다
+        if (!order.getUser().getId().equals(currentUserService.getCurrentUser().getId())) {
+            throw new BusinessException(ErrorCode.ORDER_NOT_FOUND);
+        }
+        // 수령한 사람이 다시 눌렀을 때 정확히 안내하도록 배달 상태보다 먼저 확인한다
+        if (order.getStatus() == OrderStatus.PICKED_UP) {
+            throw new BusinessException(ErrorCode.ALREADY_PICKED_UP);
+        }
+        if (order.getRoom().getStatus() != RoomStatus.ARRIVED) {
+            throw new BusinessException(ErrorCode.NOT_ARRIVED);
+        }
+        if (!order.matchesPickupCode(code)) {
+            throw new BusinessException(ErrorCode.INVALID_PICKUP_CODE);
+        }
+
+        order.pickUp();
+        return PickupOrderResponse.from(order);
     }
 }

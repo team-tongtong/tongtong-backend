@@ -104,4 +104,12 @@ public class Order extends BaseTimeEntity {
         this.status = OrderStatus.CANCELED;
         this.paymentStatus = PaymentStatus.CANCELED;
     }
+
+    public boolean matchesPickupCode(String code) {
+        return pickupCode != null && pickupCode.equals(code);
+    }
+
+    public void pickUp() {
+        this.status = OrderStatus.PICKED_UP;
+    }
 }
