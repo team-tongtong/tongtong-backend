@@ -30,7 +30,8 @@ public class OrderController {
     }
 
     @Operation(summary = "내 주문 목록 조회",
-            description = "고정 사용자의 주문 내역을 최근 참여 순으로 반환합니다. status를 주면 해당 모집방 상태의 주문만 반환합니다.")
+            description = "고정 사용자의 주문 내역을 최근 참여 순으로 반환합니다. "
+                    + "status=CANCELED는 방이 취소됐거나 내가 취소한 주문, 그 외 status는 방 상태가 맞고 내가 취소하지 않은 주문을 반환합니다.")
     @GetMapping
     public ApiResponse<OrderListResponse> getMyOrders(
             @RequestParam(name = "status", required = false) RoomStatus status) {
