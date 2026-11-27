@@ -1,5 +1,6 @@
 package com.likelion.tongtong.domain.order.service;
 
+import com.likelion.tongtong.domain.order.dto.CancelOrderResponse;
 import com.likelion.tongtong.domain.order.dto.OrderDetailResponse;
 import com.likelion.tongtong.domain.order.dto.OrderListResponse;
 import com.likelion.tongtong.domain.order.dto.PickupOrderResponse;
@@ -8,6 +9,7 @@ import com.likelion.tongtong.domain.order.entity.OrderStatus;
 import com.likelion.tongtong.domain.order.repository.OrderItemRepository;
 import com.likelion.tongtong.domain.order.repository.OrderRepository;
 import com.likelion.tongtong.domain.room.entity.RoomStatus;
+import com.likelion.tongtong.domain.room.repository.RoomRepository;
 import com.likelion.tongtong.domain.user.service.CurrentUserService;
 import com.likelion.tongtong.global.exception.BusinessException;
 import com.likelion.tongtong.global.response.ErrorCode;
@@ -24,6 +26,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final CurrentUserService currentUserService;
+    private final RoomRepository roomRepository;
 
     public OrderDetailResponse getOrder(Long orderId) {
         Order order = orderRepository.findDetailById(orderId)
@@ -55,6 +58,25 @@ public class OrderService {
             orders = orderRepository.findActiveByUserIdAndRoomStatus(userId, roomStatus, OrderStatus.CANCELED);
         }
         return OrderListResponse.from(orders);
+    }
+
+    @Transactional
+    public CancelOrderResponse cancelOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
+        // 다른 사람의 주문은 존재 여부를 드러내지 않도록 없는 주문과 같이 처리한다
+        if (!order.getUser().getId().equals(currentUserService.getCurrentUser().getId())) {
+            throw new BusinessException(ErrorCode.ORDER_NOT_FOUND);
+        }
+        // 참여로 모집이 완료되는 순간과 겹치지 않도록 모집방을 잠그고 최신 상태로 판단한다
+        // Order.room은 LAZY여야 이 잠금 조회가 모집방을 처음 읽어 최신 상태가 된다 (주문을 join fetch로 읽으면 예전 값이 남는다)
+        roomRepository.findByIdForUpdate(order.getRoom().getId());
+        if (!order.isCancelable()) {
+            throw new BusinessException(ErrorCode.CANNOT_CANCEL);
+        }
+
+        order.cancel();
+        return CancelOrderResponse.from(order);
     }
 
     @Transactional

@@ -99,6 +99,12 @@ public class Order extends BaseTimeEntity {
         this.pickupCode = pickupCode;
     }
 
+    // 모집 완료 전이라 결제된 금액이 없어 결제 상태도 함께 취소한다
+    public void cancel() {
+        this.status = OrderStatus.CANCELED;
+        this.paymentStatus = PaymentStatus.CANCELED;
+    }
+
     public boolean matchesPickupCode(String code) {
         return pickupCode != null && pickupCode.equals(code);
     }
