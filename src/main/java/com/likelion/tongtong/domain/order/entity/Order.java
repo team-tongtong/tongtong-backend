@@ -98,4 +98,12 @@ public class Order extends BaseTimeEntity {
         this.paymentStatus = PaymentStatus.PAID;
         this.pickupCode = pickupCode;
     }
+
+    public boolean matchesPickupCode(String code) {
+        return pickupCode != null && pickupCode.equals(code);
+    }
+
+    public void pickUp() {
+        this.status = OrderStatus.PICKED_UP;
+    }
 }

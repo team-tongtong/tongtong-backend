@@ -2,15 +2,20 @@ package com.likelion.tongtong.domain.order.controller;
 
 import com.likelion.tongtong.domain.order.dto.OrderDetailResponse;
 import com.likelion.tongtong.domain.order.dto.OrderListResponse;
+import com.likelion.tongtong.domain.order.dto.PickupOrderRequest;
+import com.likelion.tongtong.domain.order.dto.PickupOrderResponse;
 import com.likelion.tongtong.domain.order.service.OrderService;
 import com.likelion.tongtong.domain.room.entity.RoomStatus;
 import com.likelion.tongtong.global.response.ApiResponse;
 import com.likelion.tongtong.global.response.SuccessCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,5 +41,13 @@ public class OrderController {
     public ApiResponse<OrderListResponse> getMyOrders(
             @RequestParam(name = "status", required = false) RoomStatus status) {
         return ApiResponse.success(SuccessCode.SUCCESS, orderService.getMyOrders(status));
+    }
+
+    @Operation(summary = "픽업 코드 입력",
+            description = "배달 완료된 주문에 5자리 픽업 코드를 입력해 수령을 완료합니다. 코드가 맞으면 PICKED_UP으로 바뀝니다.")
+    @PostMapping("/{orderId}/pickup")
+    public ApiResponse<PickupOrderResponse> pickUpOrder(@PathVariable Long orderId,
+                                                        @Valid @RequestBody PickupOrderRequest request) {
+        return ApiResponse.success(SuccessCode.SUCCESS, orderService.pickUpOrder(orderId, request.code()));
     }
 }
