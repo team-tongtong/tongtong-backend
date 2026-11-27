@@ -30,6 +30,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.TestConstructor.AutowireMode;
@@ -42,19 +43,30 @@ import org.springframework.transaction.annotation.Transactional;
 @TestConstructor(autowireMode = AutowireMode.ALL)
 class OrderCancelTest {
 
+    private static final long FIXED_USER_ID = 1L;
+    private static final long OTHER_USER_ID = 9_101L;
+
     private final OrderService orderService;
     private final OrderRepository orderRepository;
     private final RoomRepository roomRepository;
     private final StoreRepository storeRepository;
     private final SpotRepository spotRepository;
     private final UserRepository userRepository;
+    private final JdbcTemplate jdbcTemplate;
     private final Clock clock;
 
     private Store store;
     private Spot spot;
+    private User me;
+    private User otherUser;
 
     @BeforeEach
     void setUp() {
+        // 자동 증가 ID와 겹치지 않도록 사용자는 ID를 지정해 넣는다
+        insertUser(FIXED_USER_ID);
+        insertUser(OTHER_USER_ID);
+        me = userRepository.findById(FIXED_USER_ID).orElseThrow();
+        otherUser = userRepository.findById(OTHER_USER_ID).orElseThrow();
         store = storeRepository.save(createStore());
         spot = spotRepository.save(Spot.builder().name("한양대 ERICA 행복관 1층").build());
     }
@@ -64,16 +76,16 @@ class OrderCancelTest {
     void cancelsJoinedOrderInRecruitingRoom() {
         // given
         Room room = roomRepository.save(createRoom(RoomStatus.RECRUITING));
-        Order hostOrder = orderRepository.save(createOrder(room, OrderStatus.JOINED));
-        orderRepository.save(createOrder(room, OrderStatus.JOINED));
+        Order myOrder = orderRepository.save(createOrder(room, me, OrderStatus.JOINED));
+        orderRepository.save(createOrder(room, otherUser, OrderStatus.JOINED));
 
         // when
-        CancelOrderResponse response = orderService.cancelOrder(hostOrder.getId());
+        CancelOrderResponse response = orderService.cancelOrder(myOrder.getId());
 
         // then
-        assertThat(response.orderId()).isEqualTo(hostOrder.getId());
+        assertThat(response.orderId()).isEqualTo(myOrder.getId());
         assertThat(response.orderStatus()).isEqualTo(OrderStatus.CANCELED);
-        Order canceled = orderRepository.findById(hostOrder.getId()).orElseThrow();
+        Order canceled = orderRepository.findById(myOrder.getId()).orElseThrow();
         assertThat(canceled.getStatus()).isEqualTo(OrderStatus.CANCELED);
         assertThat(canceled.getPaymentStatus()).isEqualTo(PaymentStatus.CANCELED);
         assertThat(roomRepository.findById(room.getId()).orElseThrow().getStatus()).isEqualTo(RoomStatus.RECRUITING);
@@ -81,11 +93,24 @@ class OrderCancelTest {
     }
 
     @Test
+    @DisplayName("다른 사람의 주문은 ORDER_NOT_FOUND로 거절하고 상태를 바꾸지 않는다")
+    void rejectsOtherUsersOrder() {
+        // given
+        Room room = roomRepository.save(createRoom(RoomStatus.RECRUITING));
+        Order otherOrder = orderRepository.save(createOrder(room, otherUser, OrderStatus.JOINED));
+
+        // when & then
+        assertError(otherOrder.getId(), ErrorCode.ORDER_NOT_FOUND);
+        assertThat(orderRepository.findById(otherOrder.getId()).orElseThrow().getStatus())
+                .isEqualTo(OrderStatus.JOINED);
+    }
+
+    @Test
     @DisplayName("모집이 완료된 방의 주문은 CANNOT_CANCEL로 거절한다")
     void rejectsCancelAfterRecruitCompleted() {
         // given
         Room room = roomRepository.save(createRoom(RoomStatus.RECRUIT_COMPLETED));
-        Order order = orderRepository.save(createOrder(room, OrderStatus.JOINED));
+        Order order = orderRepository.save(createOrder(room, me, OrderStatus.JOINED));
 
         // when & then
         assertError(order.getId(), ErrorCode.CANNOT_CANCEL);
@@ -96,7 +121,7 @@ class OrderCancelTest {
     void rejectsAlreadyCanceledOrder() {
         // given
         Room room = roomRepository.save(createRoom(RoomStatus.RECRUITING));
-        Order order = orderRepository.save(createOrder(room, OrderStatus.CANCELED));
+        Order order = orderRepository.save(createOrder(room, me, OrderStatus.CANCELED));
 
         // when & then
         assertError(order.getId(), ErrorCode.CANNOT_CANCEL);
@@ -113,6 +138,14 @@ class OrderCancelTest {
         assertThatThrownBy(() -> orderService.cancelOrder(orderId))
                 .isInstanceOfSatisfying(BusinessException.class,
                         exception -> assertThat(exception.getErrorCode()).isEqualTo(errorCode));
+    }
+
+    private void insertUser(long userId) {
+        jdbcTemplate.update("""
+                insert into users (user_id, created_at, updated_at)
+                select ?, current_timestamp, current_timestamp
+                where not exists (select 1 from users where user_id = ?)
+                """, userId, userId);
     }
 
     private Store createStore() {
@@ -141,10 +174,10 @@ class OrderCancelTest {
                 .build();
     }
 
-    private Order createOrder(Room room, OrderStatus status) {
+    private Order createOrder(Room room, User user, OrderStatus status) {
         return Order.builder()
                 .room(room)
-                .user(userRepository.save(User.create()))
+                .user(user)
                 .status(status)
                 .paymentMethod(PaymentMethod.KAKAO_PAY)
                 .foodAmount(7_000)
