@@ -32,17 +32,45 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     long countByRoomIdAndStatusNot(Long roomId, OrderStatus status);
 
+    // 주문 내역 전체
     @Query("""
             select o from Order o
             join fetch o.room r
             join fetch r.store
             join fetch r.spot
             where o.user.id = :userId
-              and (:roomStatus is null or r.status = :roomStatus)
             order by o.createdAt desc, o.id desc
             """)
-    List<Order> findAllByUserIdAndRoomStatus(@Param("userId") Long userId,
-                                             @Param("roomStatus") RoomStatus roomStatus);
+    List<Order> findAllByUserId(@Param("userId") Long userId);
+
+    // 모집중·모집 완료·배달 완료 탭: 방 상태가 맞고 내가 취소하지 않은 주문
+    @Query("""
+            select o from Order o
+            join fetch o.room r
+            join fetch r.store
+            join fetch r.spot
+            where o.user.id = :userId
+              and r.status = :roomStatus
+              and o.status <> :canceledOrderStatus
+            order by o.createdAt desc, o.id desc
+            """)
+    List<Order> findActiveByUserIdAndRoomStatus(@Param("userId") Long userId,
+                                                @Param("roomStatus") RoomStatus roomStatus,
+                                                @Param("canceledOrderStatus") OrderStatus canceledOrderStatus);
+
+    // 취소 탭: 방이 취소됐거나 내가 취소한 주문
+    @Query("""
+            select o from Order o
+            join fetch o.room r
+            join fetch r.store
+            join fetch r.spot
+            where o.user.id = :userId
+              and (r.status = :canceledRoomStatus or o.status = :canceledOrderStatus)
+            order by o.createdAt desc, o.id desc
+            """)
+    List<Order> findCanceledByUserId(@Param("userId") Long userId,
+                                     @Param("canceledRoomStatus") RoomStatus canceledRoomStatus,
+                                     @Param("canceledOrderStatus") OrderStatus canceledOrderStatus);
 
     interface RoomParticipantCount {
         Long getRoomId();

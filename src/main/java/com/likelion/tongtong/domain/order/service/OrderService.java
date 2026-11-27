@@ -10,6 +10,7 @@ import com.likelion.tongtong.domain.room.entity.RoomStatus;
 import com.likelion.tongtong.domain.user.service.CurrentUserService;
 import com.likelion.tongtong.global.exception.BusinessException;
 import com.likelion.tongtong.global.response.ErrorCode;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +43,16 @@ public class OrderService {
         return getOrders(currentUserService.getCurrentUser().getId(), roomStatus);
     }
 
+    // 내가 취소한 주문은 방이 모집중이어도 취소 탭에 보여 준다 (프론트와 합의)
     OrderListResponse getOrders(Long userId, RoomStatus roomStatus) {
-        return OrderListResponse.from(orderRepository.findAllByUserIdAndRoomStatus(userId, roomStatus));
+        List<Order> orders;
+        if (roomStatus == null) {
+            orders = orderRepository.findAllByUserId(userId);
+        } else if (roomStatus == RoomStatus.CANCELED) {
+            orders = orderRepository.findCanceledByUserId(userId, RoomStatus.CANCELED, OrderStatus.CANCELED);
+        } else {
+            orders = orderRepository.findActiveByUserIdAndRoomStatus(userId, roomStatus, OrderStatus.CANCELED);
+        }
+        return OrderListResponse.from(orders);
     }
 }
