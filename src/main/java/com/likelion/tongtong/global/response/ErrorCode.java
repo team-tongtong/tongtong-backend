@@ -29,6 +29,7 @@ public enum ErrorCode {
     RECRUIT_CLOSED("RECRUIT_CLOSED", "모집이 마감되었어요.", HttpStatus.CONFLICT),
     ALREADY_JOINED("ALREADY_JOINED", "이미 참여한 모집방이에요.", HttpStatus.CONFLICT),
     INVALID_STATUS_TRANSITION("INVALID_STATUS_TRANSITION", "모집 완료 상태가 아니에요.", HttpStatus.CONFLICT),
+    MIN_ORDER_NOT_MET("MIN_ORDER_NOT_MET", "마지막 자리예요. 최소주문금액을 채울 만큼 메뉴를 담아 주세요.", HttpStatus.CONFLICT),
 
     // 주문·픽업
     ORDER_NOT_FOUND("ORDER_NOT_FOUND", "주문 내역을 찾을 수 없어요.", HttpStatus.NOT_FOUND),

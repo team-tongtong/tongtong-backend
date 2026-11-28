@@ -219,6 +219,7 @@ public class RoomService {
         Map<Long, Menu> menus = findStoreMenus(menuIds, store.getId());
         Menu sharedMenu = room.getSharedMenu();
         OrderAmounts amounts = calculateJoinAmounts(room, store, sharedMenu, request.items(), menus);
+        validateMinOrderOnLastSeat(room, store, activeOrders, amounts);
 
         Order order = orderRepository.save(Order.builder()
                 .room(room)
@@ -241,7 +242,7 @@ public class RoomService {
 
         List<Order> participants = new ArrayList<>(activeOrders);
         participants.add(order);
-        completeRecruitIfFilled(room, store, participants);
+        completeRecruitIfFilled(room, participants);
         return JoinRoomResponse.from(room, order);
     }
 
@@ -259,18 +260,29 @@ public class RoomService {
         }
     }
 
-    // 정원이 차고 음식값 합계가 최소주문금액 이상이면 모집 완료, 참여자 전원 결제 완료와 픽업 코드 발급
-    private void completeRecruitIfFilled(Room room, Store store, List<Order> participants) {
-        if (participants.size() < room.getMaxParticipants()) {
+    // 마지막 자리를 채우는 참여인데 합계가 최소주문금액에 못 미치면 받지 않는다
+    // (받으면 정원은 찼는데 금액이 모자라 아무도 더 못 들어오고 마감 때 취소되는 방이 된다)
+    private void validateMinOrderOnLastSeat(Room room, Store store, List<Order> activeOrders, OrderAmounts amounts) {
+        if (activeOrders.size() + 1 < room.getMaxParticipants()) {
             return;
         }
-        long foodTotal = participants.stream().mapToLong(Order::getFoodAmount).sum();
-        Menu sharedMenu = room.getSharedMenu();
-        if (sharedMenu != null) {
-            // 1인 몫을 내림해서 생긴 잔액도 가게에는 결제되므로 합계에 더한다 (정원이 다 찼을 때만 여기 온다)
-            foodTotal += sharedMenu.getPrice() % room.getMaxParticipants();
-        }
+        long foodTotal = activeOrders.stream().mapToLong(Order::getFoodAmount).sum()
+                + amounts.foodAmount() + sharedMenuRemainder(room);
         if (foodTotal < store.getMinOrderAmount()) {
+            throw new BusinessException(ErrorCode.MIN_ORDER_NOT_MET);
+        }
+    }
+
+    // 1인 몫을 내림해서 생긴 잔액도 가게에는 결제되므로 최소주문금액 판단에 더한다
+    private long sharedMenuRemainder(Room room) {
+        Menu sharedMenu = room.getSharedMenu();
+        return sharedMenu == null ? 0 : sharedMenu.getPrice() % room.getMaxParticipants();
+    }
+
+    // 정원이 차면 모집 완료, 참여자 전원 결제 완료와 픽업 코드 발급
+    // (최소주문금액은 마지막 자리 참여 전에 validateMinOrderOnLastSeat에서 확인했다)
+    private void completeRecruitIfFilled(Room room, List<Order> participants) {
+        if (participants.size() < room.getMaxParticipants()) {
             return;
         }
 
