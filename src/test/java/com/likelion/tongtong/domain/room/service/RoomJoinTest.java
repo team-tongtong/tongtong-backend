@@ -129,10 +129,24 @@ class RoomJoinTest {
     }
 
     @Test
-    @DisplayName("정원이 차도 음식값 합계가 최소주문금액보다 적으면 모집중을 유지한다")
-    void keepsRecruitingWhenMinOrderAmountNotMet() {
-        // given
+    @DisplayName("마지막 자리인데 음식값 합계가 최소주문금액보다 적으면 MIN_ORDER_NOT_MET로 거절하고 주문을 저장하지 않는다")
+    void rejectsLastSeatWhenMinOrderAmountNotMet() {
+        // given: 1,000원 + 7,000원 = 8,000원 < 최소주문 13,500원
         Room room = saveRoom(Track.INDIVIDUAL, null, 2, RoomStatus.RECRUITING, LocalDateTime.now(clock).plusMinutes(30));
+        saveOrder(room, otherUser, OrderStatus.JOINED, 1_000);
+
+        // when & then
+        assertError(() -> roomService.joinRoom(room.getId(), request(new MenuItem(burger.getId(), 1))),
+                ErrorCode.MIN_ORDER_NOT_MET);
+        assertThat(orderRepository.countByRoomIdAndStatusNot(room.getId(), OrderStatus.CANCELED)).isEqualTo(1);
+        assertThat(roomRepository.findById(room.getId()).orElseThrow().getStatus()).isEqualTo(RoomStatus.RECRUITING);
+    }
+
+    @Test
+    @DisplayName("마지막 자리가 아니면 음식값 합계가 최소주문금액보다 적어도 참여할 수 있다")
+    void allowsNonLastSeatBelowMinOrderAmount() {
+        // given: 정원 3명 중 2번째 참여, 1,000원 + 7,000원 = 8,000원 < 최소주문 13,500원
+        Room room = saveRoom(Track.INDIVIDUAL, null, 3, RoomStatus.RECRUITING, LocalDateTime.now(clock).plusMinutes(30));
         saveOrder(room, otherUser, OrderStatus.JOINED, 1_000);
 
         // when
