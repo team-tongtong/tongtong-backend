@@ -30,16 +30,15 @@ INSERT INTO `store` (`store_id`, `name`, `category`, `image_url`, `rating`, `rev
 ON DUPLICATE KEY UPDATE `store_id` = `store_id`;
 
 INSERT INTO `spot` (`spot_id`, `name`, `description`, `map_image_url`, `created_at`, `updated_at`) VALUES
-    (1, '한양대 ERICA 행복관 1층', '1층 엘리베이터 옆 픽업 선반', 'https://i.ibb.co/2YMbHhFg/images-10.jpg', DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
-    (2, '학생회관 1층', '학생회관 정문 계단 옆 벤치 앞 통통 픽업존', 'https://i.ibb.co/Df1phR9x/1.jpg', DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
-    (3, '학술정보관 앞', '학술정보관 정문 계단 옆 벤치 앞 통통 픽업존', 'https://i.ibb.co/vxrZmy0n/images-4.jpg', DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
-    (4, '한양대 ERICA 정문', '정문 수위실 옆 배달 픽업 구역', 'https://i.ibb.co/tjzQ6gG/Capture-2022-11-15-09-13-24.jpg', DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR))
+    (1, '기숙사', '창의관 1층 로비 내 지정 픽업 구역', 'https://cdn.phototourl.com/anon/2026-11-28-ecd00a5a-f542-4cb9-b917-e48514615d22.jpg', DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
+    (2, '셔틀콕', '셔틀콕 정류장 옆 지정 픽업 구역', 'https://cdn.phototourl.com/anon/2026-11-28-1fe57202-4f00-483d-a2a1-f9772905eb38.png', DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
+    (4, 'ERICA 정문', '정문 수위실 옆 배달 픽업 구역', 'https://cdn.phototourl.com/anon/2026-11-28-5d87b389-8d8a-4e77-a126-cb5c8c698b26.png', DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR))
 ON DUPLICATE KEY UPDATE `spot_id` = `spot_id`;
 
 INSERT INTO `menu` (`menu_id`, `store_id`, `name`, `description`, `price`, `image_url`, `portionable`, `created_at`, `updated_at`) VALUES
     (1, 1, '까만찜닭', '달콤 짭조름한 간장소스로 만든 찜닭', 27800, 'https://i.ibb.co/TxhGhLfb/a74ec1d259a7eb2e131e8707ce5ee0f9-niw8-QMZ5-7ee482c83316dfa93bfa966c04d6cc07b5b827a9.png', 1, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
-    (2, 1, '두찜 실비한우곱찜닭', '통통한 한우대창에 매운 김치 다대기가 듬뿍 들어간 찜닭. 타피오카 99% 당면, 비트무, 김, 참기름 포함', 34800, 'https://i.ibb.co/gZ1DwXqT/images-5.jpg', 1, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
-    (3, 1, '두찜 칼낙지찜닭 (절단낙지)', '매콤한 찜닭에 쫄깃한 절단낙지와 칼국수 사리를 더해 푸짐하게 즐기는 찜닭', 34800, 'https://i.ibb.co/LG7F336/images-6.jpg', 1, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
+    (2, 1, '실비한우곱찜닭', '통통한 한우대창에 매운 김치 다대기가 듬뿍 들어간 찜닭. 타피오카 99% 당면, 비트무, 김, 참기름 포함', 34800, 'https://i.ibb.co/gZ1DwXqT/images-5.jpg', 1, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
+    (3, 1, '칼낙지찜닭 (절단낙지)', '매콤한 찜닭에 쫄깃한 절단낙지와 칼국수 사리를 더해 푸짐하게 즐기는 찜닭', 34800, 'https://i.ibb.co/LG7F336/images-6.jpg', 1, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
     (4, 1, '[원조K로제] 로제찜닭', 'K로제의 원조 두찜만의 특제 로제소스 타피오카 99% 당면으로 잘 불지않고 더 뱅글쫄깃합니다.', 30800, 'https://i.ibb.co/M5t31BsD/images-7.jpg', 1, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
     (5, 2, '뿌링클', '바삭한 치킨에 치즈 풍미의 뿌링클 시즈닝과 뿌링 소스를 곁들인 bhc 시그니처 치킨', 21000, 'https://i.ibb.co/JZGvX8j/images-8.jpg', 1, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
     (6, 2, '콰삭킹', '감자·쌀·옥수수 크럼블로 바삭함을 극대화한 치킨. 스윗 하바네로 소스 제공', 21000, 'https://i.ibb.co/SXmT4ptn/images-9.jpg', 1, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
@@ -48,7 +47,7 @@ INSERT INTO `menu` (`menu_id`, `store_id`, `name`, `description`, `price`, `imag
     (9, 3, '로제떡볶이', '부드러운 로제 크림에 엽떡의 매콤함을 더한 떡볶이. 반반·오뎅 선택 가능', 16000, 'https://i.ibb.co/YTTMHF6T/5-1-1-1-1-1-1-2-1-1-1-1-1-1-1-1-1-1-1-1-1.png', 1, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
     (10, 3, '마라로제떡볶이', '마라의 얼얼함과 로제 소스를 함께 즐기는 떡볶이', 18000, 'https://i.ibb.co/k2XpbKKz/24-02-22-500x500-2-1-1-1-1-1-2-1-1-1-1-1-1-1-1-1-1-1-1-1.png', 1, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
     (11, 3, '꿔바로우(5개)', '새콤달콤한 꿔바로우 5개. 떡볶이와 곁들이기 좋은 사이드', 5900, 'https://i.ibb.co/yLQ3Qd6/3-1-1-1-1-1-1-1-1-1-1-1-1-1.jpg', 0, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
-    (12, 4, '가장맛있는족발 앞발 (대)', '앞발 족발 대 사이즈 (3~4인분). 부추무침, 겉절이, 백김치, 쌈장, 새우젓, 쌈채소 포함', 41000, 'https://i.ibb.co/XxybHpCY/IMG-1597.jpg', 1, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
+    (12, 4, '앞발 (대)', '앞발 족발 대 사이즈 (3~4인분). 부추무침, 겉절이, 백김치, 쌈장, 새우젓, 쌈채소 포함', 41000, 'https://i.ibb.co/XxybHpCY/IMG-1597.jpg', 1, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
     (13, 4, '반반족발 (2인분)', '족발 두 가지 맛을 반반 담은 2인분 단품. 겉절이, 부추무침, 백김치, 쌈채소 포함', 41000, 'https://i.ibb.co/snnmCp8/IMG-1595.jpg', 1, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
     (14, 4, '가족의 족보 (중)', '족발과 보쌈을 한 번에 즐기는 3~4인분 세트. 보쌈김치와 쌈채소 포함', 42000, 'https://i.ibb.co/67rhNCMw/IMG-1596.jpg', 1, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
     (15, 4, '날치알 주먹밥', '족발에 곁들이기 좋은 날치알 주먹밥', 3000, 'https://i.ibb.co/w3Z57KC/IMG-1549.png', 0, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
@@ -100,11 +99,11 @@ ON DUPLICATE KEY UPDATE `popular_keyword_id` = `popular_keyword_id`;
 INSERT INTO `room` (`room_id`, `store_id`, `spot_id`, `track`, `shared_menu_id`, `max_participants`, `status`, `recruit_deadline`, `created_at`, `updated_at`) VALUES
     (1, 1, 1, 'PORTION', 1, 4, 'RECRUITING', DATE_ADD(DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), INTERVAL 600 MINUTE), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
     (2, 2, 2, 'PORTION', 5, 2, 'RECRUIT_COMPLETED', DATE_ADD(DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), INTERVAL 600 MINUTE), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
-    (3, 5, 3, 'INDIVIDUAL', NULL, 3, 'RECRUITING', DATE_ADD(DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), INTERVAL 720 MINUTE), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
+    (3, 5, 1, 'INDIVIDUAL', NULL, 3, 'RECRUITING', DATE_ADD(DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), INTERVAL 720 MINUTE), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
     (4, 6, 4, 'INDIVIDUAL', NULL, 2, 'RECRUIT_COMPLETED', DATE_ADD(DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), INTERVAL 600 MINUTE), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
     (5, 4, 1, 'PORTION', 13, 2, 'ARRIVED', DATE_ADD(DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), INTERVAL 600 MINUTE), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
     (6, 7, 2, 'INDIVIDUAL', NULL, 3, 'RECRUITING', DATE_ADD(DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), INTERVAL 600 MINUTE), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
-    (7, 3, 3, 'PORTION', 8, 4, 'RECRUITING', DATE_ADD(DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), INTERVAL 15 MINUTE), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
+    (7, 3, 2, 'PORTION', 8, 4, 'RECRUITING', DATE_ADD(DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), INTERVAL 15 MINUTE), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
     (8, 1, 4, 'PORTION', 3, 3, 'RECRUITING', DATE_ADD(DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), INTERVAL 720 MINUTE), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR)),
     (9, 6, 2, 'INDIVIDUAL', NULL, 3, 'CANCELED', DATE_SUB(DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), INTERVAL 60 MINUTE), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 9 HOUR))
 ON DUPLICATE KEY UPDATE `room_id` = `room_id`;
